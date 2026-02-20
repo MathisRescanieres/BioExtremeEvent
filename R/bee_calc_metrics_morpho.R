@@ -1,18 +1,18 @@
 #'Compute metrics spatial features of the extreme event (only in surface, 2D)
 #'
-#' @description 
-#'  This function give the morphological metrics for an extreme event, 
+#' @description
+#'  This function give the morphological metrics for an extreme event,
 #'  corrected_rasters is the SpatRaster you want to analyze (it needs to be
 #'  binarise with the mhw function)
-#' 
+#'
 #' @param corrected_rasters :
-#'  The SpatRaster you want to analyse (first output of 
+#'  The SpatRaster you want to analyse (first output of
 #'  *BEE.id.extreme_events()*).
 #' @param start_date :
-#'  Allows to perform the analysis on a specific  time_frame, this allows to 
+#'  Allows to perform the analysis on a specific  time_frame, this allows to
 #'  save computation time.
 #' @param end_date :
-#'  Allows to perform the analysis on a specific  time_frame, this allows to 
+#'  Allows to perform the analysis on a specific  time_frame, this allows to
 #'  save computation time.
 #' @param per_pix :
 #'  Use TRUE if you want a list with one dt per pixel as an output.
@@ -21,10 +21,11 @@
 #'  be converted into meters data that take in account earth sphericity, the
 #'  conversion depend on studdied region, thus you must specify the one the most
 #'  appropriated for your data. See help here to find a suitable EPSG you can
-#'  check on https://epsg.io/ .
-#' 
-#' @note 
-#'  BEE.calc.metrics_morpho is not designed to work on 4D data 
+#'  check on https://epsg.io/ or https://spatialreference.org/explorer.html or
+#'  https://projectionwizard.org/.
+#'
+#' @note
+#'  BEE.calc.metrics_morpho is not designed to work on 4D data
 #'  (time+spatial 3D).
 #'
 #' @export
@@ -125,7 +126,7 @@ BEE.calc.metrics_morpho <- function(
 
     # Create a df with on row per pixel
     vals <- terra::values(x)
-    cell_size <- terra::values(terra::cellSize(x))[, 1]
+    cell_size <- terra::values(terra::cellSize(x, unit = "km"))[, 1]
     boundary <- terra::boundaries(x, directions = 8)
     coordonates <- terra::xyFromCell(x, 1:terra::ncell(x)) #each pixel coordinates
     d <- terra::time(x)
