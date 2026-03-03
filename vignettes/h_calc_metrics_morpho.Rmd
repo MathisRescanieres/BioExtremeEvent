@@ -158,7 +158,8 @@ write.csv(patch_df_unlisted, file = "your_path/data/metrics_morpho_patch.csv")
 ## Plot:
 Quick plot of patches for a given day
 ```{r}
-
+df_list <- list_morpho_metrics[[1]]
+pixel_
 
 ```
 
