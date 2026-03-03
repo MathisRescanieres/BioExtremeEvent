@@ -39,3 +39,21 @@ binarise with the mhw function)
 BEE.calc.metrics_morpho is not designed to work on 4D data
 (time+spatial 3D).
 }
+\examples{
+# Load example data:
+library(BioExtremeEvent)
+file_name_1 <- system.file(file.path("extdata",
+                                     "binarized_corrected_spatraster.tiff"),
+                                     package = "BioExtremeEvent")
+copernicus_data_celsius <- terra::rast(file_name_1)
+
+# Get metrics value per pixel x day:
+list_morpho_metrics <- BEE.calc.metrics_morpho(copernicus_data_celsius,
+start_date = "2024-05-01",
+end_date = "2024-11-30",
+per_pix=TRUE)
+
+dataframe_list <- list_morpho_metrics[[1]] # One df per pixel
+patch_spatraster <- list_morpho_metrics[[2]]
+
+}

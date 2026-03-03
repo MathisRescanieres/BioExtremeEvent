@@ -23,6 +23,23 @@
 #'  BEE.calc.metrics_morpho is not designed to work on 4D data
 #'  (time+spatial 3D).
 #'
+#' @examples
+#' # Load example data:
+#' library(BioExtremeEvent)
+#'file_name_1 <- system.file(file.path("extdata",
+#'                                      "binarized_corrected_spatraster.tiff"),
+#'                                      package = "BioExtremeEvent")
+#'copernicus_data_celsius <- terra::rast(file_name_1)
+#'
+#' # Get metrics value per pixel x day:
+#' list_morpho_metrics <- BEE.calc.metrics_morpho(copernicus_data_celsius,
+#' start_date = "2024-05-01",
+#' end_date = "2024-11-30",
+#' per_pix=TRUE)
+#'
+#' dataframe_list <- list_morpho_metrics[[1]] # One df per pixel
+#' patch_spatraster <- list_morpho_metrics[[2]]
+#'
 #' @export
 #'
 #-------------------------------------------------------------------------------
@@ -400,7 +417,6 @@ min_ellipse_from_polygon <- function(x, data2) {
       data_p[, c("x", "y")]
     )
     if (nrow(coords_m) == 1) {
-
       ell_dir[i] <- NA
       ell_crop_area_m2[i] <- 0
       ell_tot_area_m2 <- 0
@@ -415,7 +431,6 @@ min_ellipse_from_polygon <- function(x, data2) {
     ) {
       # the patch formes a line
       if (length(unique(coords_m[, 1])) == 1) {
-
         #fixed longitude
         ell_dir[i] <- 0
         patch_ell_ratio[i] <- NA
@@ -430,7 +445,6 @@ min_ellipse_from_polygon <- function(x, data2) {
         i <- 1 + i
       }
       if (length(unique(coords_m[, 2])) == 1) {
-
         #fixed longitude
         ell_dir[i] <- 90
         patch_ell_ratio[i] <- NA
@@ -449,7 +463,6 @@ min_ellipse_from_polygon <- function(x, data2) {
         (length(unique(coords_m[, 1])) == nrow(coords_m) &
           length(unique(coords_m[, 2])) == nrow(coords_m))
     ) {
-
       #diagonal
       ell_dir[i] <- geosphere::bearing(coords_m[1, ], coords_m[2, ])
       patch_ell_ratio[i] <- NA
@@ -467,7 +480,6 @@ min_ellipse_from_polygon <- function(x, data2) {
         length(unique(coords_m[, 1])) > 1 &
         length(unique(coords_m[, 2])) > 1
     ) {
-
       # /!\ In between those line, every output is in degrees and distances and
       # angle are wrong because cluster::ellipsoidhull assume that coordinates
       # are planer, in our case we just want the coordinates of the points that

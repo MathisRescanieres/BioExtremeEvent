@@ -119,9 +119,24 @@ copernicus_data_celsius <- terra::rast(file_name_1)
 list_morpho_metrics <- BEE.calc.metrics_morpho(copernicus_data_celsius, start_date = "2024-05-01", end_date = "2024-11-30", per_pix=TRUE) 
 ```
 
-## Get metrics by patch:
+/!\ In the list of dataframe (first output of BEE.calc.metrics_morpho()) are NAMED according pixel_id, which allows you to extract a dataframe by it's NAME. If you extract a dataframe by its position in the list, you will not get the dataframe associed to the expected pixel.
+
 ```{r}
-list_morpho_metrics2 <- BEE.calc.metrics_morpho(copernicus_data_celsius, start_date = "2024-05-01", end_date = "2024-11-30", per_pix=FALSE)
+# If looking for the datafrmae associated to pixel number 214, use "214", not 214:
+df_list <- list_morpho_metrics[[1]] # get the dataframe list
+# Get dataframe associated to pixel 214:
+pixel_214 <- df_list[["214"]] # Don't forget the "" !
+
+# Get the 214^th dataframe :
+pixel_unknown <- df_list[[214]]
+pixel_unknown$pixel_id[1] ; names(df_list[214])
+# The dataframe pixel_unkown is associated to pixel number 302
+# This is why it is important to extract dataset from the list using the NAME (using "pixel number").
+```
+
+## Get metrics by patch x day :
+```{r}
+list_morpho_metrics_EE <- BEE.calc.metrics_morpho(copernicus_data_celsius, start_date = "2024-05-01", end_date = "2024-11-30", per_pix=FALSE)
 ```
 
 
@@ -144,7 +159,7 @@ I you used per_pix=FALSE the ouptuts are a dataframe (within a list) and a spata
 To save the dataframe with morphometrics values per patch :
 
 ```{r, eval = FALSE}
-patch_df <- list_morpho_metrics1[[1]] # get first object of the ouput
+patch_df <- list_morpho_metrics_EE[[1]] # get first object of the ouput
 saveRDS(patch_df, file = "your_path/data/metrics_morpho_patch.rds")
 
 # To avoid saving the dataframe as a list of one object, you can extract it from the list before saving:
@@ -155,17 +170,73 @@ write.csv(patch_df_unlisted, file = "your_path/data/metrics_morpho_patch.csv")
 
 # Plots
 
-## Plot:
-Quick plot of patches for a given day
+## Very basic plot of a metric through time:
+Quick plot of patches for a given pixel.
+
 ```{r}
+library(ggplot2)
+
+# Metrics from a given position (pixel n°130):
 df_list <- list_morpho_metrics[[1]]
-pixel_
+pixel_302 <- df_list[["302"]]
+# Convert area from m² to km²:
+pixel_302$patch_area_km2 <- pixel_302$patch_area / 1e6
 
+# Plot:
+ggplot(pixel_302, aes(x = date,
+                      y = patch_area_km2)) +
+  geom_line(na.rm = FALSE, color = "darkorange") +
+  scale_x_date(date_breaks = "1 month",
+               date_labels = "%Y-%m") +
+  labs(x = "Date",
+       y = expression("Patch area (km"^2*")")) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5))
 ```
 
-## Plot:
-Plot a metric throught time for a given position (e.g. a given pixel):
-```{r, fig.width = 20, fig.height =5, warning = FALSE}
 
+If the area is small (as in our example), there is little intrest in plotting a metric for different pixel according to time. In deed, since sevral pixels belong to the same patch, they will often have the same value of area, perimeter etc. 
+
+## Plotting patch area according azimut of the ellispe fitted on the patch:
+
+```{r}
+patch_df <- list_morpho_metrics_EE[[1]] #list of dataframe
+patch_df <- dplyr::bind_rows(patch_df) #one big dataframe
+
+#Converte m² to km²:
+patch_df$patch_area_km2 <- patch_df$patch_area / 1e6
+
+#Plot
+library(ggplot2)
+
+max_val <- max(patch_df$patch_area_km2, na.rm = TRUE)
+
+ggplot(patch_df, aes(x = ell_dir, y = patch_area_km2)) +
+  #on point per patch (per day):
+  geom_point(color = "darkblue", size = 2) +
+  coord_polar(theta = "x", start = pi, direction = 1) +
+  scale_y_continuous(
+    limits = c(0, max_val * 1.05),
+    breaks = c(2000, 4000, 6000, 8000),
+    expand = c(0, 0)
+  ) +
+    #dark lines for 4000 and 8000 (please ajust to the sacle of your data):
+  geom_hline(yintercept = c(4000, 8000), color = "black", size = 0.5, linetype = "solid") +
+    #grey dotted lines:
+  geom_hline(yintercept = c(2000, 6000), color = "darkgrey", size = 0.5, linetype = "dotted") +
+  labs(x = "Direction (°)", y = NULL, title = "patch area in km²") +
+  theme_minimal() +
+  theme(
+    axis.title.y = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5, vjust = -0.5, size = 11)
+  ) +
+    # add breaks values (circles):
+  annotate("text", x = 0, y = 2000 + 300, label = "2000", color = "darkgrey", size = 3, hjust = 0.5) +
+  annotate("text", x = 0, y = 4000 + 300, label = "4000", color = "black", size = 3, hjust = 0.5) +
+  annotate("text", x = 0, y = 6000 + 300, label = "6000", color = "darkgrey", size = 3, hjust = 0.5) +
+  annotate("text", x = 0, y = 8000 + 300, label = "8000", color = "black", size = 3, hjust = 0.5)
 ```
-
