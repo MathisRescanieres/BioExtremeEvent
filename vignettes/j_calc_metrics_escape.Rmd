@@ -100,7 +100,60 @@ escape <- BEE.calc.escape(
 ) 
 ```
 
+## Get metrics per extreme events only:
+```{r}
+library(BioExtremeEvent)
+
+escape_EE_ONLY <- BEE.calc.escape(
+  extreme_events_output = extreme_event,
+  start_date = "2024-05-01",
+  end_date = "2024-11-30",
+  pixel= GPS,
+  only_days_EE = TRUE,
+  group_by_event = TRUE
+) 
+```
+
+Note: if you use *"only_days_EE"* = FALSE and *"group_by_event"* = TRUE, you will get a line for the period in bteween extreme events, this allow to keep a continuous time line.
+
 ## GRAPH RAPPORT CELESTE
 
+```{r}
+# Extract the dataframe associated to pixel 108 from th list of df:
+escape_108 <- escape[["108"]] 
 
-# Plots
+# Plot:
+library(ggplot2)
+## Create circles to add on plot:
+cercles <- seq(0, 50000, by = 10000) 
+ggplot(escape_108, ggplot2::aes(x = as.numeric(azimut), y = as.numeric(distance))) +
+  # Densité de points par saison
+  stat_density_2d_filled(
+    geom = "polygon",
+    contour_var = "ndensity",
+    show.legend = TRUE,
+    alpha = 1
+  ) +
+  geom_point(data = data.frame(x = 0, y = 0),
+             ggplot2::aes(x = x, y = y),
+             shape = 4, size = 1, stroke = 0.5, color = "black", inherit.aes = FALSE) +
+  # Dessiner les cercles concentriques blancs
+  geom_hline(yintercept = cercles, color = "lightpink", linetype = "solid", alpha = 0.3) +
+  coord_polar(theta = "x", start = 0) +
+  scale_x_continuous(
+    limits = c(0, 360),
+    breaks = seq(0, 360, by = 30),
+    expand = c(0, 0)
+  ) +
+  theme_classic() +
+  theme(
+    strip.background = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.title = element_blank(),
+    panel.grid.minor = element_blank()
+  ) +
+  ggplot2::labs(title = "Positions of daily closest refuge pixel from pixel 108", fill = "Density")
+
+```
+
