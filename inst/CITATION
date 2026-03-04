@@ -1,0 +1,10 @@
+citHeader("To cite BioExtremeEvent in publications use:")
+
+bibentry(
+  bibtype = "Manual",
+  title   = "BioExtremeEvent: {An} {R} package to characterise extreme event.",
+  author  = c(person("Delannoy Victoria, Sébastien Villéger, Nicolas Casajus, Nicolas Cabrol, Céleste Fièvre, Nicolas Loiseau")),
+  year    = "2026",
+  note    = "R package version 0.0.900",
+  url     = "https://github.com/VicoDelannoy/BioExtremeEvent"
+)
