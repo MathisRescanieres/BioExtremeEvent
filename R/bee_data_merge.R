@@ -13,21 +13,21 @@
 #'  bee.calc.escape(..., only_days_EE = FALSE, group_by_event = FALSE).
 #'
 #' @param data_metrics_point :
-#'  The output of the BEE.calc.metrics_point computed using the argument 
+#'  The output of the BEE.calc.metrics_point computed using the argument
 #'  group_by_event = FALSE.
 #'
 #' @param data_metrics_morpho :
-#'  The output of the BEE.calc.metrics_morpho computed using the argument 
+#'  The output of the BEE.calc.metrics_morpho computed using the argument
 #'  per_pix = TRUE.
 #'
 #' @param data_escape :
-#'  The output of the BEE.calc.escape computed using the argument 
+#'  The output of the BEE.calc.escape computed using the argument
 #'  only_days_EE = FALSE AND group_by_event = FALSE.
 #'
 #' @param crs :
 #'  A METRICS crs that suits the studdied area.
 #'
-#' @return 
+#' @return
 #'  A list of dataframe (one df per pixel) with the metrics of all the
 #'  datasets provided in column. If you haven't choose a daily resolution,
 #'  a mean, median, variance, minimum and maximum will be computed for each
@@ -254,21 +254,27 @@ BEE.data.merge <- function(
     )
     data_metrics_point_xy <- stats::na.omit(unique(data_metrics_point_xy))
     # Create polygones for each datasets :
-    ## Convert df to sf (using a metric crs)
-    sf_data_metrics_point_xy <- sf::st_as_sf(
+    data_metrics_point_xy_vect <- terra::vect(
       data_metrics_point_xy,
-      coords = c("lon", "lat"),
+      geom = c("lon", "lat"),
       crs = crs
     )
-    ## Gather the point into one object (otherwise it will create one polygone
-    # per point)
-    sf_data_metrics_point_xy <- sf::st_combine(sf_data_metrics_point_xy)
-    ## Compute polygones
-    pol_data_metrics_point <- sf::st_concave_hull(
-      sf_data_metrics_point_xy,
-      ratio = 0.8,
-      allow_holes = FALSE
-    )
+    pts <- nrow(data_metrics_point_xy)
+    if (
+      all(
+        pts >= 3 & #more than two points
+          (length(unique(data_metrics_point_xy$lon)) != pts | #not a diagonale
+            length(unique(data_metrics_point_xy$lat)) != pts) &
+          (length(unique(data_metrics_point_xy$lon)) == 1 | #not a line
+            length(unique(data_metrics_point_xy$lat)) == 1)
+      )
+    ) {
+      pol_data_metrics_point <- terra::as.polygons(
+        data_metrics_point_xy_vect
+      )
+    }else{
+      pol_data_metrics_point <- terra::as.points(data_metrics_point_xy_vect)
+    }
   }
   ### data_morpho_point polygon
   if (!is.null(data_metrics_morpho)) {
@@ -280,21 +286,29 @@ BEE.data.merge <- function(
     )
     data_metrics_morpho_xy <- stats::na.omit(unique(data_metrics_morpho_xy))
     # Create polygones for each datasets :
-    ## Convert df to sf (using a metric crs)
-    sf_data_metrics_morpho_xy <- sf::st_as_sf(
+    data_metrics_morpho_xy_vect <- terra::vect(
       data_metrics_morpho_xy,
-      coords = c("lon", "lat"),
+      geom = c("lon", "lat"),
       crs = crs
     )
-    ## Gather the morpho into one object (otherwise it will create one polygone
-    # per morpho)
-    sf_data_metrics_morpho_xy <- sf::st_combine(sf_data_metrics_morpho_xy)
     ## Compute polygones
-    pol_data_metrics_morpho <- sf::st_concave_hull(
-      sf_data_metrics_morpho_xy,
-      ratio = 0.8,
-      allow_holes = FALSE
+    pts <- nrow(data_metrics_point_xy)
+    if (
+      all(
+        pts >= 3 & #more than two points
+          (length(unique(data_metrics_morpho_xy$lon)) != pts | #not a diagonale
+            length(unique(data_metrics_morpho_xy$lat)) != pts) &
+          (length(unique(data_metrics_morpho_xy$lon)) == 1 | #not a line
+            length(unique(data_metrics_morpho_xy$lat)) == 1)
+      )
+    ) {
+      pol_data_metrics_morpho <- terra::as.polygons(
+      data_metrics_morpho_xy_vect
     )
+    }else{
+      pol_data_metrics_morpho <- terra::as.points(data_metrics_morpho_xy_vect)
+    }
+    
   }
   ### data_escape polygon
   if (!is.null(data_escape)) {
@@ -306,21 +320,26 @@ BEE.data.merge <- function(
     )
     data_escape_xy <- stats::na.omit(unique(data_escape_xy))
     # Create polygones for each datasets :
-    ## Convert df to sf (using a metric crs)
-    sf_data_escape_xy <- sf::st_as_sf(
+    data_escape_xy_vect <- terra::vect(
       data_escape_xy,
-      coords = c("lon", "lat"),
+      geom = c("lon", "lat"),
       crs = crs
     )
-    ## Gather the escape into one object (otherwise it will create one polygone
-    # per morpho)
-    sf_data_escape_xy <- sf::st_combine(sf_data_escape_xy)
-    ## Compute polygones
-    pol_data_escape <- sf::st_concave_hull(
-      sf_data_escape_xy,
-      ratio = 0.8,
-      allow_holes = FALSE
+    if (
+      all(
+        pts >= 3 & #more than two points
+          (length(unique(data_escape_xy$lon)) != pts | #not a diagonale
+            length(unique(data_escape_xy$lat)) != pts) &
+          (length(unique(data_escape_xy$lon)) == 1 | #not a line
+            length(unique(data_escape_xy$lat)) == 1)
+      )
+    ) {
+      pol_data_escape <- terra:::as.polygons(
+      data_escape_xy_vect
     )
+    }else{
+      pol_data_escape <- terra::as.points(data_escape_xy_vect)
+    }
   }
 
   ### Tests overlapping :
@@ -329,11 +348,11 @@ BEE.data.merge <- function(
       !is.null(data_metrics_morpho) &
       is.null(data_escape)
   ) {
-    inter_point_morpho <- sf::st_intersection(
+    inter_point_morpho <- terra::intersect(
       pol_data_metrics_point,
       pol_data_metrics_morpho
     )
-    if (is.null(inter_point_morpho)) {
+    if ( all(as.vector(terra::ext(inter_point_morpho))==c(0,0,0,0))) {
       # no intersection
       warnings(
         "data_metrics_point and data_metrics_morpho are not overlapping 
@@ -351,11 +370,11 @@ BEE.data.merge <- function(
       !is.null(data_metrics_morpho) &
       !is.null(data_escape)
   ) {
-    inter_morpho_escape <- sf::st_intersection(
+    inter_morpho_escape <- terra::intersect(
       pol_data_metrics_morpho,
       pol_data_escape
     )
-    if (is.null(inter_morpho_escape)) {
+    if (all(as.vector(terra::ext(inter_morpho_escape))==c(0,0,0,0))) {
       warnings(
         "data_metrics_morpho and data_escape are not overlapping 
       spatially, merging is not possible. Please check the following points : 
@@ -372,11 +391,11 @@ BEE.data.merge <- function(
       is.null(data_metrics_morpho) &
       !is.null(data_escape)
   ) {
-    inter_point_escape <- sf::st_intersection(
+    inter_point_escape <- terra::intersect(
       pol_data_metrics_point,
       pol_data_escape
     )
-    if (is.null(inter_point_escape)) {
+    if (all(as.vector(terra::ext(inter_point_escape))==c(0,0,0,0))) {
       warnings(
         "data_metrics_point and data_escape are not overlapping 
        spatially, merging is not possible. Please check the following points : 
@@ -393,12 +412,11 @@ BEE.data.merge <- function(
       !is.null(data_metrics_morpho) &
       !is.null(data_escape)
   ) {
-    inter_point_morpho_escape <- sf::st_intersection(
+    inter_point_morpho_escape <- terra::intersect(terra::intersect(
       pol_data_metrics_point,
-      pol_data_metrics_morpho,
-      pol_data_escape
-    )
-    if (is.null(inter_point_morpho_escape)) {
+      pol_data_metrics_morpho
+    ), pol_data_escape)
+    if (all(as.vector(terra::ext(inter_point_morpho_escape))==c(0,0,0,0))) {
       warnings(
         "at least one dataset among data_metrics_point, 
       data_metrics_morpho and data_escape is not overlapping spatially with the

@@ -145,8 +145,8 @@ BEE.calc.metrics_point <- function(
   #Check that all gps points are within yourspatraster and period_of_interest extent
   if (
     !all(
-      abs(gps[1]) <= abs(yourspatraster_extent$xmax) &
-        abs(gps[1]) >= abs(yourspatraster_extent$xmin)
+      abs(gps[,1]) <= abs(yourspatraster_extent$xmax) &
+        abs(gps[,1]) >= abs(yourspatraster_extent$xmin)
     )
   ) {
     warning(
@@ -157,8 +157,8 @@ BEE.calc.metrics_point <- function(
   }
   if (
     !all(
-      abs(gps[2]) <= abs(yourspatraster_extent$ymax) &
-        abs(gps[2]) >= abs(yourspatraster_extent$ymin)
+      abs(gps[,2]) <= abs(yourspatraster_extent$ymax) &
+        abs(gps[,2]) >= abs(yourspatraster_extent$ymin)
     )
   ) {
     warning(
@@ -173,7 +173,7 @@ BEE.calc.metrics_point <- function(
   ## List of pixel that are always NA:
   NA_pixels <- which(vapply(extreme_event, is.null, logical(1)))
   ## Identify the pixels corresponding to the gps position provided:
-  gps$pixel <- terra::cellFromXY(yourspatraster, gps)
+  gps$pixel <- terra::cellFromXY(yourspatraster, xy = gps)
   if (any(gps$pixel %in% NA_pixels)) {
     wrong_position <- which(gps$pixel %in% NA_pixels)
     warning(
@@ -196,15 +196,14 @@ BEE.calc.metrics_point <- function(
   df_list <- lapply(gps$pixel, function(p) {
     extreme_event[[p]]
   }) # on df per points/pixel
-  yourspatraster <- t(terra::extract(yourspatraster, gps[, 3]))
+  yourspatraster <- t(terra::extract(yourspatraster, gps[-3]))
 
   # Subset both dataset so they match the timeframe provided with 'start_date'
   # and 'end_date'.
-  Date <- rownames(yourspatraster)
   yourspatraster <- yourspatraster[
     which(
-      as.Date(rownames(yourspatraster)) >= as.Date(start_date) &
-        as.Date(rownames(yourspatraster)) <= as.Date(end_date)
+      as.Date(rownames(yourspatraster)[-1]) >= as.Date(start_date) &
+        as.Date(rownames(yourspatraster)[-1]) <= as.Date(end_date)
     ),
   ]
   yourspatraster <- as.matrix(yourspatraster)
@@ -231,7 +230,7 @@ BEE.calc.metrics_point <- function(
   #Get daily anomaly to baseline_qt and to baseline_mean
   if (!is.null(baseline_qt)) {
     qt <- as.data.frame(t(terra::extract(baseline_qt, gps[, 3])))
-    qt$dates <- format(
+    qt$dates <- format( #any leap year would do
       seq(as.Date("2024-01-01"), as.Date("2024-12-31"), by = "day"),
       "%m-%d"
     )

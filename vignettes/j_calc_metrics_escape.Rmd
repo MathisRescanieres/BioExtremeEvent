@@ -42,7 +42,8 @@ You will receive a message in the following case :
 
 ## Output
 
-You will get a list of dataframes containning the informations in the table bellow and a spartaster with all the extreme events, identified daily:
+You will get a list of dataframes containning the informations in the table bellow:  
+
 
 |   Column name        |             Description              |   Class   |  Unit          |
 |:--------------------:|:------------------------------------:|:---------:|:--------------:|
@@ -81,9 +82,12 @@ extreme_event_list <- readRDS(file_name_2)
 
 extreme_event <- list(extreme_event_spatraster,extreme_event_list)
 
-# create a dataframe with the positions of the studdied sites:
-GPS <- data.frame(x = c(3.7659), 
-                  y = c(43.4287))
+# Build a DATAFRAME with position to studdy:
+ GPS <- as.data.frame(terra::xyFromCell(baseline_qt90_smth_15, 
+                          cell = terra::cells(baseline_qt90_smth_15)))
+# This take in account every pixel in the raster, but you can also build your set of coordinates:
+ GPS_2 <- data.frame(x = c(3.6883,4.4268), # Sète, Saintes-Marie-de-la-Mer
+                     y = c(43.3786,43.4279))
 ```
 
 ## Get metrics by pixel:
@@ -92,8 +96,8 @@ library(BioExtremeEvent)
 
 escape <- BEE.calc.escape(
   extreme_events_output = extreme_event,
-  start_date = "2024-05-01",
-  end_date = "2024-11-30",
+  start_date = "2023-01-01",
+  end_date = "2025-12-15",
   pixel= GPS,
   only_days_EE = FALSE,
   group_by_event = FALSE
@@ -101,7 +105,7 @@ escape <- BEE.calc.escape(
 ```
 
 ## Get metrics per extreme events only:
-```{r}
+```{r, message=FALSE}
 library(BioExtremeEvent)
 
 escape_EE_ONLY <- BEE.calc.escape(
@@ -116,7 +120,22 @@ escape_EE_ONLY <- BEE.calc.escape(
 
 Note: if you use *"only_days_EE"* = FALSE and *"group_by_event"* = TRUE, you will get a line for the period in bteween extreme events, this allow to keep a continuous time line.
 
-## GRAPH RAPPORT CELESTE
+# How to save the ouputs:
+If you used group_by_event=FALSE, output is a list of dataframe, with one dataframe per pixel. 
+To save your list of dataframe:
+```{r, eval = FALSE}
+saveRDS(escape, file = "your_path/data/escape_pixel.rds")
+```
+
+If you used group_by_event=TRUE, output is a dataframe. 
+```{r, eval = FALSE}
+write.csv(escape_EE_ONLY, file = "your_path/data/escape_EE.csv")
+```
+
+
+# Plots
+
+## Plot refugees around a pixel.
 
 ```{r}
 # Extract the dataframe associated to pixel 108 from th list of df:

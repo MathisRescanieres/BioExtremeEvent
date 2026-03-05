@@ -13,95 +13,138 @@ Merge the ouputs of *BEE.calc.metrics_point()*, *BEE.calc.metrics_morpho()* and/
 
 # Usage
 ## Arguments:
-**extreme_day**: is a spatraster with one layer per day. Each layer covers the same area and time is continuous (no layers are missing). If you are not using a fixed threshold, the baseline spatraster computed using BEE.calc.baseline() must be computed using the same dataset as yourspatraster for comparison without bias.  
-**n**: The minimum number of consecutive days above the baseline/threshol required for a series of days more extrem than the baseline to be considered as an extreme event (≥).  
-**d**: The maximum number of days for which two series of values above the threshold/baseline, separated by some days below the threshold/baseline, can be considered a single extreme event (the maximum distance in days between the two events to be merged <=).  
-**nbis**: The minimum number of days in a series of 1 to allow merging with
-#' serie of 1 longer than *'n'* and distant from *'d'* days or fewer.
-#' /!\ *'nbis'* must be inferior or equal to *'n'*. This avoid extending an extreme event for only a few extreme day. For instance: 0000100111110010000 will be considere as an extreme event
-of duration 11 days when only using n = 5 and d= 2. However, if you set nbis=2, lonely extreme days will not be merged and the duration of the above event will be 5 days. It allows to be more or less precautionious on the temporal extent of the extreme event.
-
+**data_metrics_point**:  
+ The list of dataframe provided in the ouput of *BEE.calc.metrics_point()*.
+**data_metrics_morpho**:  
+ The list of dataframe provided in the output of *BEE.calc.metrics_morpho()* (The first object, the second on is a spatraster not used here.)
+**data_escape**:  
+ The list of dataframe provided in the output of *BEE.calc.escape()*.
+**crs**
+ The CRS of the Spatraster that you have used so far to compute the baseline and identify the extreme event. The function does not modify the CRS of your coordinates. CRS is only used to build polygons and check that the datasets you have provided cover the same area.
 
 ## Warnings:
-No warning implemented yet.  
+You will receive a warning if :
+
+-   The CRS you provided is not recognised by 'terra' package. Use the 'terra::crs()' function on the spatial arrays you have provided to the *BEE.calc.baseline()* or *BEE.calc.metrics_morpho()* functions, for example.  
+-   You didn't provided datasets to merge together or you provided only one dataset.
+-   Some dates are missing in one of the dataset or the resolution is not daily. 
+-   Some of the provided datasets do not share dates, so merging is not possible. Please compute the metrics for the same time period.
+-   The provided datasets do not cover the same spatial area, so merging is not possible. Please compute the metrics for the same spatial raster (without cropping during the workflow).
+
 ## Messages:
-No messages implemented yet.
+You will receive a message in the following case :  
+-    One dataset does not cover the same time period as the others. The merge will only be performed for the time periods that overlap in each dataset.  
+
 
 ## Output
-Returns a list with 2 elements.  
-The first one is called **"extreme_event_spatraster"**. This SpatRaster contains the identified extreme events. Based on the criteria specified in the function arguments, extreme events are derived from the binarised extreme days by applying pixel-wise temporal rules such as minimum event duration, merging of events that are close in time, and the removal of isolated extreme days. These events are used in the next function of the pipeline.  
-The second element is called **"extreme_event_list"**. This is a list with one data.table per pixel. Each data.table has a date for each row (and as many dates as there are layers in yourspatraster). 
-
-The dataframes in the output list "extreme_event_list" contains the followings collumns :
-
-|   Column name  |             Description            |   Class   |  Unit   |
-|:--------------:|:----------------------------------:|:---------:|:-------:|
-| pixel_id       | Pixel number in the spatraster     | integer   |         |
-| original_value | Day more extreme than baseline = 1 | double    |         |
-|                | Day less extreme than baseline = 0 |           |         |
-| cleaned_value  | Day belong to an exteme event = 1  | double    |         |
-|                | Day outside of an extreme event = 0|           |         |
-| event_id       | Number of the extreme event in the | integer   |         | 
-|                | time serie                         |           |         |
-| duration       | Duration of the period (extreme    | integer   | days    |   
-|                | event or in between 2 events)      |           |         |   
-| date           | Date associated to the observation |double/date|         |  
-| ID             | The event identifier \*            | character |         |
-
-\* built using the pixel number, the first day of the event and the last day of the event and the event_id for that pixel. ID and event_id are proper to each pixel.  
-
-If the position in the list corresponds to a pixel number for which the pixel value is consistently NA, the data frame is a null object.
-
-# Note
-The *BEE.calc.corrections()* function allows to check how many modifications your choices of settings in BEE.calc.tru_event have induced compare to row binerized data. Please check *3.bis. Check the number of modifications induced by the BEE.id.extreme_events() settings.*
+Returns a list of dataframe with on dataframe per pixel. Only pixel/coordinates that are present in all the dataset provided will be present in the ouput.  
+To get more informations on the metrics definition please check the tables from the vignettes n°4, 5 and 6.
 
 # Examples
 ## Load data:
 ```{r setup}
 library(BioExtremeEvent)
-#Binarized spatraster built using BEE.id.extreme_day()
-file_name_1 <- system.file(file.path("extdata", "copernicus_binarized.tiff"),
+
+file_name_1 <- system.file(file.path("extdata", "escape_pixel.rds"),
                                    package = "BioExtremeEvent")
-binarized_data <- terra::rast(file_name_1)
+escape_df_list <- readRDS(file_name_1)
+
+file_name_2 <- system.file(file.path("extdata", "metrics_morpho_pixel.rds"),
+                                   package = "BioExtremeEvent")
+morpho_df_list <- readRDS(file_name_2)
+
+file_name_3 <- system.file(file.path("extdata", "metrics_points_pixel.rds"),
+                                   package = "BioExtremeEvent")
+point_df_list <- readRDS(file_name_3)
+
 ```
 
-## Apply filter:
+## Apply function on three dataset:
 ```{r}
-events <- BEE.id.extreme_events(extreme_day = binarized_data, n = 5, d = 2)
+library(BioExtremeEvent)
+
+merged_ouputs <- BEE.data.merge( data_metrics_point = point_df_list,
+                                 data_metrics_morpho = morpho_df_list, 
+                                 data_escape = escape_df_list, 
+                                 crs= "EPSG:4326")
 ```
 
-## Spatraster output:
-```{r}
-# Get the corrected spatraster:
-extreme_event_spatraster <- events[[1]]
+You can also provide only two data_... arguments to the function.
 
-# Plot a layer
-date <- terra::time(extreme_event_spatraster[[800]])
-terra::plot(extreme_event_spatraster[[800]],
-            main = as.character(date))
-# Here 850 refers to the layers of the spatraster <-> 800th days of the spatraster.
-```
-
-## Get the list of data.table with former and corrected values and with dates and duration:
-
-```{r}
-extreme_event_list <- events[[2]]
-head(extreme_event_list[["80"]])
-# Here 80 refers to the pixel id. The 850th day correspond to the 850th row.
-```
-
-
-## How to save the ouputs:
-Due to the different nature of the two outputs, they must be saved separately.
+# How to save the ouputs:
+The output is a list of dataframe, you can save it as follow:
 
 ```{r, eval = FALSE}
-## Save the spatraster
-extreme_event_spatraster <- events[[1]]
-terra::writeRaster(extreme_event_spatraster, "your_path/data/binarized_corrected_spatraster.tiff")
-
-## Save the list of df
-extreme_event_list <- events[[2]]
-saveRDS(extreme_event_list, file = "your_path/data/binarized_corrected_df.rds")
+saveRDS(merged_ouputs, file = "your_path/data/merged_ouputs.rds")
 ```
 
-Please save both because they are both used in the next steps of the pipeline.
+# Plots
+You can know work on the outputs of sevral functions :
+
+```{r}
+pixel_108 <- merged_ouputs[["108"]] #Dont forget the quote or you may get an unexpected pixel
+
+#Check if the more intense day are also the one for which the distance to escape from the extreme event are bigger. 
+library(ggplot2)
+
+ggplot(pixel_108, aes(x = as.numeric(anomaly_qt), y = as.numeric(distance)/1000)) +
+  geom_point(color = "steelblue", size = 3, alpha = 0.7) +
+  labs(
+    title = "Anomaly vs Distance",
+    x = "Anomaly (°C)",
+    y = "Distance (km)"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 11),
+    panel.grid.major = element_line(color = "gray90"),
+    panel.grid.minor = element_blank()
+  )
+```
+
+Since *BEE.data.merge()* only works with continuous daily data, the output also has continuous daily data. Therefore, many days in the output do not correspond to an extreme event.
+You can remove them as follows:
+
+```{r}
+pixel_108 <- merged_ouputs[["108"]]
+pixel_108_EE <- pixel_108[pixel_108$cleaned_value==1,]
+
+library(ggplot2)
+
+library(ggplot2)
+
+ggplot(pixel_108_EE, aes(x = as.numeric(anomaly_qt), y = as.numeric(distance)/1000, color = patch_ell_ratio)) +
+  geom_point(size = 3, alpha = 0.7) +
+  geom_vline(xintercept = 0, color = "red", linetype = "solid", linewidth = 1) +
+  annotate(
+    "text",
+    x = -0.5,
+    y = Inf,
+    label = "Not an extreme day but\nbelongs to an\nextreme event",
+    color = "red",
+    hjust = 1,
+    vjust = 1.2,
+    size = 5,
+    fontface = "plain"
+  ) +
+  labs(
+    title = "Anomaly vs Distance",
+    x = "Anomaly (°C)",
+    y = "Distance (km)",
+    color = "patch_ell_ratio"
+  ) +
+  xlim(NA, 3) +
+  scale_color_viridis_c() +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 11),
+    panel.grid.major = element_line(color = "gray90"),
+    panel.grid.minor = element_blank(),
+    legend.position = "right"
+  )
+
+```
