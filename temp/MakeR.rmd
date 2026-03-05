@@ -54,7 +54,7 @@ ds <- BEE.data.load_copernicus( username=username, password=password,
   minimum_latitude=42,
   maximum_latitude=43.7,
   start_datetime="1982-01-01T00:00:00",
-  end_datetime="2024-12-31T00:00:00",
+  end_datetime="2025-12-31T00:00:00",
   coordinates_selection_method="strict-inside",
   disable_progress_bar=TRUE,
   output_directory = here::here("Data"))
@@ -71,14 +71,12 @@ You can start from here is your data are already in your computer.
 
 ```{r}
 # SST
-ds <- terra::rast("Data/cmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021_analysed_sst_2.94E-7.80E_42.01N-43.67N_1982-01-01-2024-12-31.nc")
-terra::time(ds) <- as.Date(terra::time(ds))
-names(ds) <- terra::time(ds)
+ds <- terra::rast("Data/cmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021_analysed_sst_3.04E-4.55E_42.92N-43.57N_1982-01-01-2025-12-31.nc")
+
 
 # ML
 ds2 <- rast("Data/med-cmcc-tem-rean-d_1741965343789.nc")
-time(ds2) <- as.Date(time(ds2))
-names(ds2) <- time(ds2)
+
 
 # Each layer name must be the corresponding date under YYYY-MM-DD format
 
@@ -89,7 +87,7 @@ names(ds2) <- time(ds2)
 If your using the package to work on temperature raster, you can check that the unit is Celsius (and make conversion if necessary) using the function bellow.
 
 ```{r}
-ds <- BEE.calc.celsius(ds)
+ds <- BEE.convert.celsius(ds)
 terra::writeRaster(ds, "Data/ds_Golfe_du_lion.tiff", overwrite=TRUE)
 ds <- terra::rast("Data/ds_Golfe_du_lion.tiff")
 ```
@@ -97,9 +95,9 @@ ds <- terra::rast("Data/ds_Golfe_du_lion.tiff")
 # 3. Calculate a baseline value for each cell in your dataset using one of two methods with *"BEE.calc.baseline"* :
 
 ```{r}
-baseline_qt90 <- BEE.calc.baseline(YourSpatraster = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "qt", quantile_value = 0.9, time_window = 1, smooth_window = 1) 
-baseline_qt10 <- BEE.calc.baseline(YourSpatraster = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "qt", quantile_value = 0.1, time_window = 5, smooth_window = 7) 
-baseline_mean <- BEE.calc.baseline(YourSpatraster = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "mean", quantile_value = NULL, time_window = 5, smooth_window = 7)
+baseline_qt90 <- BEE.calc.baseline(yourspatraster = ds, start_date = "1982-01-01", end_date = "2012-12-31", threshold = "qt", quantile_value = 0.9, time_window = 1, smooth_window = 1) 
+baseline_qt10 <- BEE.calc.baseline(yourspatraster = ds, start_date = "1982-01-01", end_date = "2012-12-31", threshold = "qt", quantile_value = 0.1, time_window = 5, smooth_window = 7) 
+baseline_mean <- BEE.calc.baseline(yourspatraster = ds, start_date = "1982-01-01", end_date = "2012-12-31", threshold = "mean", quantile_value = NULL, time_window = 5, smooth_window = 7)
 
 # Save and load baselines 
 terra::writeRaster(baseline_qt90, "Data/baseline_qt90_Golfe_du_lion.tiff", overwrite = TRUE)

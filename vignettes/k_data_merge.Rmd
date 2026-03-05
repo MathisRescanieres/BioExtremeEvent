@@ -110,7 +110,7 @@ ggplot(pixel_108, aes(x = as.numeric(anomaly_qt), y = as.numeric(distance)/1000)
 Since *BEE.data.merge()* only works with continuous daily data, the output also has continuous daily data. Therefore, many days in the output do not correspond to an extreme event.
 You can remove them as follows:
 
-```{r}
+```{r, message=FALSE}
 pixel_108 <- merged_ouputs[["108"]]
 pixel_108_EE <- pixel_108[pixel_108$cleaned_value==1,]
 
@@ -118,7 +118,7 @@ library(ggplot2)
 
 library(ggplot2)
 
-ggplot(pixel_108_EE, aes(x = as.numeric(anomaly_qt), y = as.numeric(distance)/1000, color = patch_ell_ratio)) +
+ggplot(pixel_108_EE, aes(x = pixel_108_EE$anomaly_qt, y = as.numeric(pixel_108_EE$distance)/1000, color = patch_ell_ratio)) +
   geom_point(size = 3, alpha = 0.7) +
   geom_vline(xintercept = 0, color = "red", linetype = "solid", linewidth = 1) +
   annotate(
@@ -138,7 +138,7 @@ ggplot(pixel_108_EE, aes(x = as.numeric(anomaly_qt), y = as.numeric(distance)/10
     y = "Distance (km)",
     color = "patch_ell_ratio"
   ) +
-  xlim(NA, 3) +
+  xlim(-2, 5) +
   scale_color_viridis_c() +
   theme_minimal() +
   theme(
