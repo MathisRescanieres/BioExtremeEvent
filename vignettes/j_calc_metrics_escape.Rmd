@@ -141,11 +141,17 @@ write.csv(escape_EE_ONLY, file = "your_path/data/escape_EE.csv")
 # Extract the dataframe associated to pixel 108 from th list of df:
 escape_108 <- escape[["108"]] 
 
+# Install MASS package (to use stat_density_2d_filled()
+if (!requireNamespace("MASS", quietly = TRUE)) {
+  install.packages("MASS", repos = "https://cloud.r-project.org/")
+}
+library(MASS)
+
 # Plot:
 library(ggplot2)
 ## Create circles to add on plot:
 cercles <- seq(0, 50000, by = 10000) 
-ggplot(escape_108, ggplot2::aes(x = as.numeric(azimut), y = as.numeric(distance))) +
+ggplot(escape_108, ggplot2::aes(x = as.numeric(escape_108$azimut), y = as.numeric(escape_108$distance))) +
   # Densité de points par saison
   stat_density_2d_filled(
     geom = "polygon",
