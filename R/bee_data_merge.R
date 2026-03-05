@@ -7,9 +7,9 @@
 #'
 #' @details
 #'  The datasets provided must contain daily values with no gaps. This implies
-#'  the use of specific arguments in the .calc. metrics :
-#'  bee.calc.metrics_point(..., group_by_event = FALSE)
-#'  bee.calc.metrics_morpho(..., per_pix = TRUE)
+#'  the use of specific arguments in the .calc. metrics :  
+#'  bee.calc.metrics_point(..., group_by_event = FALSE)  
+#'  bee.calc.metrics_morpho(..., per_pix = TRUE)  
 #'  bee.calc.escape(..., only_days_EE = FALSE, group_by_event = FALSE).
 #'
 #' @param data_metrics_point :
