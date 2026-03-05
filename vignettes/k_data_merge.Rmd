@@ -1,9 +1,9 @@
 ---
-title: "7. Merge the the ouput of BEE.calc.'..' functions in one dataframe."
+title: "7. Merge the the ouput of BEE.calc. functions in one dataframe."
 author: "Victoria Delannoy, Nicolas Loiseau, Sébastien Villéger"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{7. Merge the metrics on extreme events in one dataframe.}
+  %\VignetteIndexEntry{7. Merge the the ouput of BEE.calc. functions in one dataframe.}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
