@@ -1,5 +1,5 @@
 ---
-title: 5. Calculate metrics on the shape of an extreme event."
+title: "5. Calculate metrics on the shape of an extreme event."
 author: "Victoria Delannoy, Nicolas Loiseau, Sébastien Villéger"
 output: rmarkdown::html_vignette
 vignette: >

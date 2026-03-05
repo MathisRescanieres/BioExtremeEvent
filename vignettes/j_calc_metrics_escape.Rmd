@@ -1,5 +1,5 @@
 ---
-title: 6. Calculate shortest distance (and direction) to escape from an extrem event."
+title: "6. Calculate shortest distance (and direction) to escape from an extrem event."
 author: "Victoria Delannoy, Nicolas Loiseau, Sébastien Villéger"
 output: rmarkdown::html_vignette
 vignette: >
