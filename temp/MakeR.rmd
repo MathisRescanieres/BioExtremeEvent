@@ -193,8 +193,21 @@ GPS <- data.frame(x = c(3.7659, 5.386, 3.146), # Frontignan, îles du Frioul, Ba
 
 test <- readRDS("/home/victoria/Documents/R/Ben_RNAseq_article/extreme_event_df_list.rds")
 test_ds <- terra::rast("/home/victoria/Documents/R/Ben_RNAseq_article/cmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021_analysed_sst_3.54E-4.20E_43.12N-43.62N_1982-01-01-2024-12-31.nc")
+
 ds <- BEE.convert.celsius(test_ds)
-points_metrics <- BEE.calc.metrics_point(test, yourspatraster = ds, GPS[1,], start_date = "2024-06-01", end_date = "2024-10-31", baseline_qt = baseline_qt90, baseline_mean = baseline_mean, group_by_event = FALSE)
+
+ds <- ds[[14241:16071]]
+points_metrics <- BEE.calc.metrics_point(
+  extreme_event=result,
+  yourspatraster=ds,
+  gps=GPS,
+  start_date = "2024-06-01",
+  end_date = "2024-09-30",
+  time_lapse_vector = NULL, # number of time unit on which to compute the warming rates and cooling rates, NULL means it will not be computated
+  baseline_qt = baseline_qt90,
+  baseline_mean = baseline_mean,
+  baseline_fixed = NULL,
+  group_by_event = FALSE)
 
 saveRDS(points_metrics, file = "Data/points_metrics.rds")
 points_metrics <- readRDS("Data/points_metrics.rds")
