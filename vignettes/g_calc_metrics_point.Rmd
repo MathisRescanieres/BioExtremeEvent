@@ -166,7 +166,7 @@ This is the recommanded action when exploring data, summarising by extreme event
  metrics_points_ee <- BEE.calc.metrics_point(
   extreme_event = binarized_corrected_df,
   yourspatraster = copernicus_data_celsius,
-  gps = gps,
+  gps = GPS_2,
   start_date = NULL,
   end_date = NULL,
   time_lapse_vector = NULL, 
@@ -182,7 +182,7 @@ Use the 'time_lapse_vector' argument. You can provide a single number or a vecto
  metrics_point_lag <- BEE.calc.metrics_point(
   extreme_event = binarized_corrected_df,
   yourspatraster = copernicus_data_celsius,
-  gps = gps,
+  gps = GPS_2,
   start_date = NULL,
   end_date = NULL,
   time_lapse_vector = c(3,5,7),  # The moving time windows are 3,5 and 7 days long.
