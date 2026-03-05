@@ -28,7 +28,6 @@ Imports:
     landscapemetrics,
     lubridate,
     reticulate,
-    sf,
     stats,
     terra,
     tidyr,
