@@ -334,7 +334,7 @@ BEE.data.merge <- function(
             length(unique(data_escape_xy$lat)) == 1)
       )
     ) {
-      pol_data_escape <- terra:::as.polygons(
+      pol_data_escape <- terra::as.polygons(
       data_escape_xy_vect
     )
     }else{
