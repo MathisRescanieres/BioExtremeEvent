@@ -65,7 +65,7 @@
 #' @export
 #'
 #---------------------------------------------------------------------------
-# baseline <- baseline_qt90 ; direction <- "above"; yourspatraster <- ds
+# baseline <- baseline_qt90 ; direction <- "above"; yourspatraster <- ds[[13515:13600]]
 
 BEE.id.extreme_day <- function(yourspatraster, baseline, direction) {
   if (class(baseline)[1] == "SpatRaster") {
@@ -240,7 +240,7 @@ generate_month_day <- function(year) {
 #'
 #' @noRd
 
-binarize_spat <- function(obs, base, direction = "above") {
+binarize_spat <- function(obs, base, direction) {
   #adjust dimension of 'base' so it matches those of 'obs'
   dates <- as.Date(terra::time(obs)) # Dates
   years <- as.integer(format(dates, "%Y")) # Years
@@ -249,11 +249,11 @@ binarize_spat <- function(obs, base, direction = "above") {
   }
   leap <- is_leap_year(unique(years))
   base_list <- lapply(seq_along(leap), function(y) {
-    if (!leap[y]) {
-      # Pour une année non bissextile (exclure le jour 60)
+    if (leap[y]) {
+      # Pour une année bissextile (exclure le jour 60)
       return(c(base[[1:59]], base[[61:366]]))
     } else {
-      # Pour une année bissextile (inclus toutes les couches)
+      # Pour une année non bissextile  (inclus toutes les couches)
       return(base)
     }
   })

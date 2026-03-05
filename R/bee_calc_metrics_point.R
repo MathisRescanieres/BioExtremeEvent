@@ -100,7 +100,7 @@
 #'
 
 #-------------------------------------------------------------------------------
-# start_date <- "2024-06-01" ; end_date <- "2024-10-31" ; yourspatraster <- ds ; p <- 1;
+# start_date <- "2019-01-01" ; end_date <- "2024-10-31" ; yourspatraster <- ds ; p <- 1;
 # gps <- data.frame(x = c(3.7659, 5.386, 3.146), y = c(43.4287, 43.183, 42.781));
 # group_by_event = TRUE; time_lapse_vector = c(1,3,5,7,14,21) ;
 # baseline_qt = baseline_qt90
