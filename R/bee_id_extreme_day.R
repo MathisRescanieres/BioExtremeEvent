@@ -3,23 +3,23 @@
 #' @description
 #'  The function binarise a Spatraster by comparing the observed value with the
 #'  baseline. If "direction" argument is "above", the values above the baseline
-#'  will be converted to 1, and the value bellow baseline will be converted 
+#'  will be converted to 1, and the value bellow baseline will be converted
 #'  to 0. The process works in reverse when "direction" = below.
 #'
-#' @param yourspatraster : 
-#'  The Spatraster containing the values of the studied parameter, with one 
+#' @param yourspatraster :
+#'  The Spatraster containing the values of the studied parameter, with one
 #'  layer for each timestep.
-#' @param baseline : 
+#' @param baseline :
 #'  A Spatraster built using the BEE.calc.baseline function, which contains the
 #'  baseline value for each pixel on a given day of the year (with 366 layers),
-#'  **or** a fixed threshold that you want to use as the baseline. The fixed 
+#'  **or** a fixed threshold that you want to use as the baseline. The fixed
 #'  threshold must be a number.
-#' @param direction : 
+#' @param direction :
 #'  The accepted values for this argument are *"above"* or *"below"*. This tells
-#'  the function whether it values above baseline or below baseline are to be 
+#'  the function whether it values above baseline or below baseline are to be
 #'  considered as extreme events.
 #'
-#' @return 
+#' @return
 #'  The function returns a list containing a Spatraster for each day of a
 #'  typical year, providing a total of 366 Spatrasters, with one layer per year.
 #'  The first element of the list contains the rasters for all the first of
@@ -28,7 +28,7 @@
 #'  the pixel value was more extreme than the baseline, and with 0 if it was
 #'  not.
 #'
-#' @details 
+#' @details
 #'  For computational purposes in the next stages of the pipeline, the
 #'  order of the layers differs from that in 'yourspatraster'.
 #'  BEE.id.extreme_day is not designed to work with 4D data (3D in space and
@@ -69,12 +69,16 @@
 
 BEE.id.extreme_day <- function(yourspatraster, baseline, direction) {
   if (class(baseline)[1] == "SpatRaster") {
-    # Retrieve the extent of yourspatraster
-    new_extent <- terra::ext(yourspatraster)
-    # Change the extent to match that of yourspatraster
-    baseline <- terra::resample(baseline, yourspatraster, method = "near")
-    # Crop to obtain the same area as yourspatraster
-    #baseline <- crop(baseline, new_extent, snap = "in")
+    # Check spatial extent:
+    if (terra::ext(yourspatraster) != terra::ext(baseline_qt90)) {
+      warning(
+        "youspatraster and baseline do not have the same spatial extent. To 
+        avoid spatial mismatch, please provide arguments derived from the same 
+        product, with no spatial cropping in between steps."
+      )
+      stop()
+    }
+
     # Retrieve the dates
     time_list_exp <- terra::time(yourspatraster, format = "days")
     # Create dates in the format %m.%d for a leap year
@@ -87,6 +91,11 @@ BEE.id.extreme_day <- function(yourspatraster, baseline, direction) {
 
     ######### THIS SECTION IS IN DEVELOPPEMENT TO WORK WITH 4D data ############
     if (any(table(terra::time(yourspatraster)) != 1)) {
+      print(
+        "You have enter a code section dedicated to 4D data that is still in 
+      developpement and that is not ready to use, please provide data with only 
+      2D + time."
+      )
       # at least one date has several layers
       rep <- sum(table(terra::time(yourspatraster))) /
         length(table(terra::time(yourspatraster)))
@@ -241,6 +250,7 @@ generate_month_day <- function(year) {
 #' @noRd
 
 binarize_spat <- function(obs, base, direction) {
+  # obs <- yourpatraster; base <- baseline; direction <- direction
   #adjust dimension of 'base' so it matches those of 'obs'
   dates <- as.Date(terra::time(obs)) # Dates
   years <- as.integer(format(dates, "%Y")) # Years
@@ -249,7 +259,7 @@ binarize_spat <- function(obs, base, direction) {
   }
   leap <- is_leap_year(unique(years))
   base_list <- lapply(seq_along(leap), function(y) {
-    if (leap[y]) {
+    if (!leap[y]) {
       # Pour une année bissextile (exclure le jour 60)
       return(c(base[[1:59]], base[[61:366]]))
     } else {

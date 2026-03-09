@@ -27,7 +27,9 @@ Note: the baseline used here have been computed in a longer time serie than the 
 For example, to identify cold spells, which are anormaly cold period, you will computed a baseline using BEE.calc.baseline() with a 10 % quantile and used *direction = "below"*.  
 
 ## Warnings:  
-No warning implemented.
+Except if you provided a fixed threshold as *"baseline"* argument (e.g. numerical value), you will receive a warning if the spatial extent of *"yourspatraster"* argument and *"baseline"* don't have the exact same spatial extent (terra::ext()).  
+Please make sure to compute your baseline on the same object as yourspatial raster to avoid spatial mismatch.
+
 ## Messages:
 No warning implemented.
 

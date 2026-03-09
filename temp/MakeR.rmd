@@ -135,10 +135,27 @@ ggplot(df_plot, ggplot2::aes(x = doy)) +
 It provide a raw information for each day and each pixel without applying any definition of the Extreme Event. Of course, one may be interesting in applying a more restrictive definition of "Extreme Event". This will be done when BEE.calc.true_event will be used (later). This intermediate step is necessary to apply BEE.calc.true_event.
 
 ```{r chunk-5}
+## check data (ot see excpected results): 
+# temp_108 <- data.frame( value = t(terra::extract(ds, 108)),
+# date = unlist(terra::time(ds)))
+# temp_108 <- temp_108[temp_108$date >= as.Date("2019-01-01") & temp_108$date <= as.Date("2019-12-31"),]
+# temp_108$baseline <- data.frame(baseline = t(terra::extract(baseline_qt90, 108)))[-60,]
+# library(ggplot2)
+# library(scales)  # pour la fonction date_breaks et date_labels
+# ggplot(temp_108, aes(x = date)) +
+#   geom_line(aes(y = value, color = "Valeur")) +
+#   geom_line(aes(y = baseline, color = "Baseline"), linetype = "dashed") +
+#   labs(y = "Valeur", x = "Date", title = "Température et baseline") +
+#   scale_color_manual(values = c("Valeur" = "blue", "Baseline" = "red")) +
+#   scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1))  # incliner pour lisibilité
+
 binarized_EE <- BEE.id.extreme_day(ds, baseline=baseline_qt90, direction = "above") #by default, direction == "above" #16:20
 
 # plot(baseline_qt90[[1]]) ; plot(binarized_EE$`01.01`$`1983-01-01`)
-# Save or load
+# Check results:
+ test<- data.frame( date = terra::time(binarized_EE[[13515:13600]]), value = t(terra::extract(ds,108))[13515:13600], base = t(terra::extract(baseline_qt90,108))[1:86], bin = t(terra::extract(binarized_EE,108))[13515:13600])
 ```
 
 You can use the output to check which are the pixel more subject to peaks of your studdied parameter :
@@ -172,7 +189,7 @@ gc()
 #testL <- as.Date.character(c("2022-11-25", "2022-11-26", "2022-11-27", "2022-11-28", "2022-11-29", "2022-11-30", "2022-12-01", "2022-12-02", "2022-12-03", "2022-12-04", "2022-12-05")) ; test <- Corrected_rasters[[names(Corrected_rasters) %in% as.character(testL)]] ;library(viridis) ; plot(sum(test),  col = viridis::viridis(4))  ; plot(Corrected_rasters["2022-11-30"])
 # saveRDS(result, file= here::here("Outputs/result.rds")) ; test_result <- readRDS(here::here("Outputs/result.rds"))
 #Check settings
-df_cor_test <- BEE.calc.corrections(Corrected_rasters, Events_corrected, plot = TRUE)
+BEE.calc.corrections(Corrected_rasters, Events_corrected, plot = TRUE)
 
 # Save and load : 
 saveRDS(Events_corrected, file = "Data/Events_corrected.rds")
@@ -239,7 +256,7 @@ ggplot2::ggplot(df_plot, ggplot2::aes(x = doy)) +
   # Ajout des valeurs de ds entre le 1er janvier 2022 et le 31 décembre 2022
   ggplot2::geom_line(ggplot2::aes(y = temp_2022), color = "black", size = 1) +  # Ligne noire pour ds
   # Configuration des axes
-  ggplot2::scale_x_continuous(breaks = mois_jours, labels = mois_labels) +  # Labels mensuels
+ 
   ggplot2::scale_y_continuous(breaks = seq(floor(min(df_plot$temp_2022, na.rm=TRUE)), ceiling(max(df_plot$temp_2022, na.rm=TRUE)), by = 1)) +  # Graduation par degré
   # Titres et étiquettes
   ggplot2::labs(title = "Évolution des valeurs sur 366 jours",

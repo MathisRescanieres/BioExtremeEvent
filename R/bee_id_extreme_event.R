@@ -117,7 +117,7 @@
 #'
 #-------------------------------------------------------------------------------
 
-# n = 5; d= 3 ; nbis= 2 # for medium complexity
+# n = 5; d= 3 ; extreme_day = binarized_EE; nbis= 2 # for medium complexity
 BEE.id.extreme_events <- function(
   extreme_day,
   n,
@@ -243,7 +243,7 @@ BEE.id.extreme_events <- function(
 #' @noRd
 correct_lowcomplexity_n_d <- function(pixel_time_series, c, n, d, all_dates) {
   # (go through each pixels of pixel_time_series)
-  # c=675
+  # c=108
   pixel_values <- pixel_time_series[c, ]
 
   rle_series <- rle(pixel_values)
