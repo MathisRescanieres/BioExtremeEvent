@@ -225,7 +225,7 @@ metrics_points_day_all_pix <- BEE.calc.metrics_point(
 ## How to save the ouputs:
 Outputs are list of dataframe (on dataframe per pixel in gps), list can be saved in .rds :
 ```{r, eval = FALSE}
-saveRDS(metrics_points_day, file = "your_path/data/metrics_points_day.rds")
+saveRDS(metrics_points_day, file = "your_path/data/metrics_points_pixel.rds")
 ```
 
 # Plots
