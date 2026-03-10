@@ -8,7 +8,8 @@ BEE.calc.metrics_morpho(
   extreme_event_spatraster,
   start_date = NULL,
   end_date = NULL,
-  per_pix = FALSE
+  per_pix = FALSE,
+  noise = NULL
 )
 }
 \arguments{
@@ -52,7 +53,8 @@ extreme_event_spatraster <- terra::rast(file_name_1)
 list_morpho_metrics <- BEE.calc.metrics_morpho(extreme_event_spatraster,
 start_date = "2024-05-01",
 end_date = "2024-11-30",
-per_pix=TRUE)
+per_pix=TRUE,
+noise=NULL)
 
 dataframe_list <- list_morpho_metrics[[1]] # One df per pixel
 patch_spatraster <- list_morpho_metrics[[2]]
