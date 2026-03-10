@@ -418,7 +418,6 @@ min_ellipse_from_polygon <- function(x, data2) {
         !is.na(data2$x) &
         !is.na(data2$y),
     ]
-    print(p)
     #matrix of points: (pixels coordinates that must goes into the ellipse)
     coords_m <- as.matrix(
       data_p[, c("x", "y")]
@@ -437,10 +436,8 @@ min_ellipse_from_polygon <- function(x, data2) {
         (length(unique(coords_m[, 1])) == 1 |
           length(unique(coords_m[, 2])) == 1)
     ) {
-      print("1 ligne droite")
       # the patch formes a line
       if (length(unique(coords_m[, 1])) == 1) {
-        print("horizontale")
         #fixed longitude
         ell_dir[i] <- 0
         patch_ell_ratio[i] <- NA
@@ -455,7 +452,6 @@ min_ellipse_from_polygon <- function(x, data2) {
         i <- 1 + i
       }
       if (length(unique(coords_m[, 2])) == 1) {
-        print("verticale")
         #fixed longitude
         ell_dir[i] <- 90
         patch_ell_ratio[i] <- NA
@@ -475,7 +471,6 @@ min_ellipse_from_polygon <- function(x, data2) {
           length(unique(coords_m[, 2])) == nrow(coords_m))
     ) {
       #diagonal
-      print("diagonale")
       ell_dir[i] <- geosphere::bearing(coords_m[1, ], coords_m[2, ])
       patch_ell_ratio[i] <- NA
       ell_crop_area_m2[i] <- 0
@@ -492,7 +487,6 @@ min_ellipse_from_polygon <- function(x, data2) {
         length(unique(coords_m[, 1])) > 1 &
         length(unique(coords_m[, 2])) > 1
     ) {
-      print("ellipse possible")
       # /!\ In between those line, every output is in degrees and distances and
       # angle are wrong because cluster::ellipsoidhull assume that coordinates
       # are planer, in our case we just want the coordinates of the points that
