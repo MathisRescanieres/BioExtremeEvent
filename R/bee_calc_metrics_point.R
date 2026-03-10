@@ -100,10 +100,10 @@
 #'
 
 #-------------------------------------------------------------------------------
-# start_date <- "2019-01-01" ; end_date <- "2024-10-31" ; yourspatraster <- ds ; p <- 1;
+# start_date <- "2019-01-01" ; end_date <- "2019-10-31" ; yourspatraster <- ds ; p <- 1;
 # gps <- data.frame(x = c(3.7659, 5.386, 3.146), y = c(43.4287, 43.183, 42.781));
 # group_by_event = TRUE; time_lapse_vector = c(1,3,5,7,14,21) ;
-# baseline_qt = baseline_qt90
+# baseline_qt = baseline_qt90 ; extreme_event <- Events_corrected
 BEE.calc.metrics_point <- function(
   extreme_event,
   yourspatraster,
@@ -145,8 +145,8 @@ BEE.calc.metrics_point <- function(
   #Check that all gps points are within yourspatraster and period_of_interest extent
   if (
     !all(
-      abs(gps[,1]) <= abs(yourspatraster_extent$xmax) &
-        abs(gps[,1]) >= abs(yourspatraster_extent$xmin)
+      abs(gps[, 1]) <= abs(yourspatraster_extent$xmax) &
+        abs(gps[, 1]) >= abs(yourspatraster_extent$xmin)
     )
   ) {
     warning(
@@ -157,8 +157,8 @@ BEE.calc.metrics_point <- function(
   }
   if (
     !all(
-      abs(gps[,2]) <= abs(yourspatraster_extent$ymax) &
-        abs(gps[,2]) >= abs(yourspatraster_extent$ymin)
+      abs(gps[, 2]) <= abs(yourspatraster_extent$ymax) &
+        abs(gps[, 2]) >= abs(yourspatraster_extent$ymin)
     )
   ) {
     warning(
@@ -192,31 +192,34 @@ BEE.calc.metrics_point <- function(
   }
 
   ############################### CODE #########################################
+  # Adjust baseline so they fit the leap years and non leap years :
+  if (!is.null(baseline_qt)) {
+    baseline_qt <- correct_baseline(yourspatraster, baseline_qt)
+  }
+  if (!is.null(baseline_mean)) {
+    baseline_mean <- correct_baseline(yourspatraster, baseline_mean)
+  }
+
   #Extract yourspatraster for the given gps position
   df_list <- lapply(gps$pixel, function(p) {
     extreme_event[[p]]
   }) # on df per points/pixel
-  yourspatraster <- t(terra::extract(yourspatraster, gps[-3]))
-
+  yourspatraster <- t(terra::extract(yourspatraster, gps[-3])[, -1])
   # Subset both dataset so they match the timeframe provided with 'start_date'
   # and 'end_date'.
   yourspatraster <- yourspatraster[
     which(
-      as.Date(rownames(yourspatraster)[-1]) >= as.Date(start_date) &
-        as.Date(rownames(yourspatraster)[-1]) <= as.Date(end_date)
+      as.Date(rownames(yourspatraster)) >= as.Date(start_date) &
+        as.Date(rownames(yourspatraster)) <= as.Date(end_date)
     ),
   ]
-  yourspatraster <- as.matrix(yourspatraster)
-  df_list <- Map(
-    function(df, col_idx) {
-      df <- df[df$date >= start_date & df$date <= end_date, ]
-      df$value <- yourspatraster[, col_idx] #Merge df_list and yourspatraster  # Ad to each
-      # dataframe the corresponding column of pixel value
-      return(df)
-    },
-    df_list,
-    seq_along(df_list)
-  )
+  yourspatraster <- as.data.frame(yourspatraster)
+  df_list <- lapply(seq_along(df_list), function(i) {
+    df <- df_list[[i]]
+    df <- df[df$date >= start_date & df$date <= end_date, ]
+    df$value <- yourspatraster[, i]
+    df
+  })
 
   # For each event I want : duration, maximum intensity, mean and median
   # intensity, category, sum of anomalies, date of maximum intensity, position
@@ -230,17 +233,11 @@ BEE.calc.metrics_point <- function(
   #Get daily anomaly to baseline_qt and to baseline_mean
   if (!is.null(baseline_qt)) {
     qt <- as.data.frame(t(terra::extract(baseline_qt, gps[, 3])))
-    qt$dates <- format( #any leap year would do
-      seq(as.Date("2024-01-01"), as.Date("2024-12-31"), by = "day"),
-      "%m-%d"
-    )
+    qt$date <- as.Date(terra::time(baseline_qt))
   }
   if (!is.null(baseline_mean)) {
     mean <- as.data.frame(t(terra::extract(baseline_mean, gps[, 3])))
-    mean$dates <- format(
-      seq(as.Date("2024-01-01"), as.Date("2024-12-31"), by = "day"),
-      "%m-%d"
-    )
+    mean$date <- as.Date(terra::time(baseline_mean))
   }
 
   metrics <- lapply(1:length(df_list), function(p) {
@@ -362,19 +359,20 @@ BEE.calc.metrics_point <- function(
       )
 
     # Add daily baseline_qt and/or daily baseline_mean and/or baseline_fixed
+
     if (!is.null(baseline_qt)) {
       df <- df |>
         dplyr::left_join(
-          qt[, c("dates", paste0("V", as.character(p)))],
-          by = "dates"
+          qt[, c("date", paste0("V", as.character(p)))],
+          by = "date"
         ) |>
         dplyr::rename(baseline_qt = paste0("V", as.character(p)))
     }
     if (!is.null(baseline_mean)) {
       df <- df |>
         dplyr::left_join(
-          mean[, c("dates", paste0("V", as.character(p)))],
-          by = "dates"
+          mean[, c("date", paste0("V", as.character(p)))],
+          by = "date"
         ) |>
         dplyr::rename(baseline_mean = paste0("V", as.character(p)))
     }
@@ -525,3 +523,39 @@ BEE.calc.metrics_point <- function(
 # OTHER PART TO DEVELOP :
 # For each pixels :
 # - anomalie cumulée par événements
+
+#' Correct baseline to take in account non leap years
+#'
+#' @noRd
+
+correct_baseline <- function(obs, base) {
+  # obs <- yourspatraster; base <- baseline_qt
+  #adjust dimension of 'base' so it matches those of 'obs'
+  dates <- as.Date(terra::time(obs)) # Dates
+  years <- as.integer(format(dates, "%Y")) # Years
+  is_leap_year <- function(years) {
+    return((years %% 4 == 0 & years %% 100 != 0) | (years %% 400 == 0))
+  }
+  leap <- is_leap_year(unique(years))
+  base_list <- lapply(seq_along(leap), function(y) {
+    if (!leap[y]) {
+      # Pour une année bissextile (exclure le jour 60)
+      return(c(base[[1:59]], base[[61:366]]))
+    } else {
+      # Pour une année non bissextile  (inclus toutes les couches)
+      return(base)
+    }
+  })
+  base_extended <- terra::rast(base_list)
+
+  first_year <- min(years)
+  last_year <- max(years)
+  first_date <- min(dates[format(dates, "%Y") == first_year])
+  last_date <- max(dates[format(dates, "%Y") == last_year])
+  doy_first_year <- as.integer(format(first_date, "%j"))
+  nb_last_day <- which(dates == last_date)
+  last_layer <- doy_first_year + nb_last_day - 1
+  base_extended <- base_extended[[doy_first_year:last_layer]]
+  terra::time(base_extended) <- dates
+  return(base_extended)
+}
