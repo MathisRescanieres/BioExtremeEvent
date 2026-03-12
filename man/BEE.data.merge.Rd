@@ -5,6 +5,7 @@
 \title{Merge the outputs of the .calc. functions.}
 \usage{
 BEE.data.merge(
+  yourspatraster,
   data_metrics_point = NULL,
   data_metrics_morpho = NULL,
   data_escape = NULL,
@@ -26,6 +27,9 @@ only_days_EE = FALSE AND group_by_event = FALSE.}
 
 \item{crs}{:
 A METRICS crs that suits the studdied area.}
+
+\item{yourspatarster}{: The spatraster you have used to compute baseline(s)
+and metrics.}
 }
 \value{
 A list of dataframe (one df per pixel) with the metrics of all the

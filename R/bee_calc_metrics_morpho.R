@@ -17,6 +17,11 @@
 #' @param per_pix :
 #'  Use TRUE if you want a list with one dt per pixel as an output. Use TRUE to
 #'  be able to use the output in BEE.data.merge().
+#' @param noise :
+#'  The maximum distance (in metres) that you accept to use to slightly randomly
+#'  move points if a patch is perfectly symmetrical allows you to compute the
+#'  associated ellipse. See the "Calculate metrics on the shape of an extreme
+#'  event" vignette for more details.
 #'
 #' @return Units related to area are in m².
 #'
@@ -396,7 +401,7 @@ BEE.calc.metrics_morpho <- function(
 
 #Minimum ellipse:
 
-min_ellipse_from_polygon <- function(x, data2) {
+min_ellipse_from_polygon <- function(x, data2, noise) {
   patch_ids <- unique(data2$patch_id[
     !is.na(data2$patch_id) & !is.nan(data2$patch_id)
   ])
@@ -423,7 +428,6 @@ min_ellipse_from_polygon <- function(x, data2) {
       data_p[, c("x", "y")]
     )
     if (nrow(coords_m) == 1) {
-      print("1 pixel")
       ell_dir[i] <- NA
       ell_crop_area_m2[i] <- 0
       ell_tot_area_m2[i] <- 0

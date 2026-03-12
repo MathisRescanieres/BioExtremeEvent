@@ -12,6 +12,9 @@
 #'  bee.calc.metrics_morpho(..., per_pix = TRUE)
 #'  bee.calc.escape(..., only_days_EE = FALSE, group_by_event = FALSE).
 #'
+#' @param yourspatarster : The spatraster you have used to compute baseline(s)
+#'  and metrics.
+#'
 #' @param data_metrics_point :
 #'  The output of the BEE.calc.metrics_point computed using the argument
 #'  group_by_event = FALSE.
@@ -40,11 +43,12 @@
 #'
 #-------------------------------------------------------------------------------
 
-# data_metrics_point <- points_metrics ;
+# data_metrics_point <- points_metrics ; yourspatraster <- ds
 # data_metrics_morpho <- list_morpho_metrics[[1]] ;
-# data_escape <- dist_to_escape ; crs = "EPSG:3035" ; summarize_by = "day"
+# data_escape <- dist_to_escape ; crs = "EPSG:3035" ;
 
 BEE.data.merge <- function(
+  yourspatraster,
   data_metrics_point = NULL,
   data_metrics_morpho = NULL,
   data_escape = NULL,
@@ -246,7 +250,11 @@ BEE.data.merge <- function(
   ## Are the dataset spatially overlapping ?
   ### data_metrics_point polygon
   if (!is.null(data_metrics_point)) {
-    # Ar
+    # Arguments 'gps' in metrics_points allows coordinates to differ from pixel
+    #center coordinates, thus, terra::intersect will says they are different
+    #even if they are on the same pixel. So, coordinates are temporarlly
+    #convert into the coordinates of the center of the pixel they belong to.
+
     # Get informations positions
     data_metrics_point <- data.table::rbindlist(data_metrics_point)
     data_metrics_point_xy <- data.frame(
@@ -254,20 +262,25 @@ BEE.data.merge <- function(
       lat = data_metrics_point$y
     )
     data_metrics_point_xy <- stats::na.omit(unique(data_metrics_point_xy))
+    ##get pixel in that spatraster:
+    pixels_nb <- terra::cellFromXY(yourspatraster, data_metrics_point_xy)
+    data_metrics_point_xy_centered <- terra::xyFromCell(
+      yourspatraster,
+      pixels_nb
+    )
     # Create polygones for each datasets :
     data_metrics_point_xy_vect <- terra::vect(
-      data_metrics_point_xy,
-      geom = c("lon", "lat"),
+      data_metrics_point_xy_centered,
       crs = crs
     )
-    pts <- nrow(data_metrics_point_xy)
+    pts <- nrow(data_metrics_point_xy_centered)
     if (
       all(
         pts >= 3 & #more than two points
-          (length(unique(data_metrics_point_xy$lon)) != pts | #not a diagonale
-            length(unique(data_metrics_point_xy$lat)) != pts) &
-          (length(unique(data_metrics_point_xy$lon)) == 1 | #not a line
-            length(unique(data_metrics_point_xy$lat)) == 1)
+          (length(unique(data_metrics_point_xy_centered[, "x"])) != pts | #not a diagonale
+            length(unique(data_metrics_point_xy_centered[, "y"])) != pts) &
+          (length(unique(data_metrics_point_xy_centered[, "x"])) == 1 | #not a line
+            length(unique(data_metrics_point_xy_centered[, "y"])) == 1)
       )
     ) {
       pol_data_metrics_point <- terra::as.polygons(
