@@ -12,16 +12,16 @@ vignette: >
 Compute daily metrics of spatial features of the extreme event (only in surface, 2D).
 
 # Usage
-## Arguments:
-**extreme_event_spatraster** :
+## Arguments:  
+**extreme_event_spatraster** :  
   The SpatRaster you want to analyse (first output of 
-  *BEE.id.extreme_events()*).
-**start_date** :
+  *BEE.id.extreme_events()*).  
+**start_date** :  
   Allows to perform the analysis on a specific  time_frame, this allows to 
-  save computation time.
+  save computation time.  
 **end_date** :
   Allows to perform the analysis on a specific  time_frame, this allows to 
-  save computation time.
+  save computation time.  
 **per_pix** :
   Use TRUE if you want a list with one dt per pixel as an output.  Use TRUE to be able to use the output in BEE.data.merge().
 

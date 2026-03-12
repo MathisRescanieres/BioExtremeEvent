@@ -7,9 +7,9 @@
 #'
 #' @details
 #'  The datasets provided must contain daily values with no gaps. This implies
-#'  the use of specific arguments in the .calc. metrics :  
-#'  bee.calc.metrics_point(..., group_by_event = FALSE)  
-#'  bee.calc.metrics_morpho(..., per_pix = TRUE)  
+#'  the use of specific arguments in the .calc. metrics :
+#'  bee.calc.metrics_point(..., group_by_event = FALSE)
+#'  bee.calc.metrics_morpho(..., per_pix = TRUE)
 #'  bee.calc.escape(..., only_days_EE = FALSE, group_by_event = FALSE).
 #'
 #' @param data_metrics_point :
@@ -246,6 +246,7 @@ BEE.data.merge <- function(
   ## Are the dataset spatially overlapping ?
   ### data_metrics_point polygon
   if (!is.null(data_metrics_point)) {
+    # Ar
     # Get informations positions
     data_metrics_point <- data.table::rbindlist(data_metrics_point)
     data_metrics_point_xy <- data.frame(
@@ -272,7 +273,7 @@ BEE.data.merge <- function(
       pol_data_metrics_point <- terra::as.polygons(
         data_metrics_point_xy_vect
       )
-    }else{
+    } else {
       pol_data_metrics_point <- terra::as.points(data_metrics_point_xy_vect)
     }
   }
@@ -303,12 +304,11 @@ BEE.data.merge <- function(
       )
     ) {
       pol_data_metrics_morpho <- terra::as.polygons(
-      data_metrics_morpho_xy_vect
-    )
-    }else{
+        data_metrics_morpho_xy_vect
+      )
+    } else {
       pol_data_metrics_morpho <- terra::as.points(data_metrics_morpho_xy_vect)
     }
-    
   }
   ### data_escape polygon
   if (!is.null(data_escape)) {
@@ -335,9 +335,9 @@ BEE.data.merge <- function(
       )
     ) {
       pol_data_escape <- terra::as.polygons(
-      data_escape_xy_vect
-    )
-    }else{
+        data_escape_xy_vect
+      )
+    } else {
       pol_data_escape <- terra::as.points(data_escape_xy_vect)
     }
   }
@@ -352,7 +352,7 @@ BEE.data.merge <- function(
       pol_data_metrics_point,
       pol_data_metrics_morpho
     )
-    if ( all(as.vector(terra::ext(inter_point_morpho))==c(0,0,0,0))) {
+    if (all(as.vector(terra::ext(inter_point_morpho)) == c(0, 0, 0, 0))) {
       # no intersection
       warnings(
         "data_metrics_point and data_metrics_morpho are not overlapping 
@@ -374,7 +374,7 @@ BEE.data.merge <- function(
       pol_data_metrics_morpho,
       pol_data_escape
     )
-    if (all(as.vector(terra::ext(inter_morpho_escape))==c(0,0,0,0))) {
+    if (all(as.vector(terra::ext(inter_morpho_escape)) == c(0, 0, 0, 0))) {
       warnings(
         "data_metrics_morpho and data_escape are not overlapping 
       spatially, merging is not possible. Please check the following points : 
@@ -395,7 +395,7 @@ BEE.data.merge <- function(
       pol_data_metrics_point,
       pol_data_escape
     )
-    if (all(as.vector(terra::ext(inter_point_escape))==c(0,0,0,0))) {
+    if (all(as.vector(terra::ext(inter_point_escape)) == c(0, 0, 0, 0))) {
       warnings(
         "data_metrics_point and data_escape are not overlapping 
        spatially, merging is not possible. Please check the following points : 
@@ -412,11 +412,16 @@ BEE.data.merge <- function(
       !is.null(data_metrics_morpho) &
       !is.null(data_escape)
   ) {
-    inter_point_morpho_escape <- terra::intersect(terra::intersect(
-      pol_data_metrics_point,
-      pol_data_metrics_morpho
-    ), pol_data_escape)
-    if (all(as.vector(terra::ext(inter_point_morpho_escape))==c(0,0,0,0))) {
+    inter_point_morpho_escape <- terra::intersect(
+      terra::intersect(
+        pol_data_metrics_point,
+        pol_data_metrics_morpho
+      ),
+      pol_data_escape
+    )
+    if (
+      all(as.vector(terra::ext(inter_point_morpho_escape)) == c(0, 0, 0, 0))
+    ) {
       warnings(
         "at least one dataset among data_metrics_point, 
       data_metrics_morpho and data_escape is not overlapping spatially with the
