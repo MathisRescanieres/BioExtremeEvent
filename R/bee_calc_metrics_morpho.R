@@ -210,7 +210,7 @@ BEE.calc.metrics_morpho <- function(
           as.numeric(df$core_area[1]) / as.numeric(df$patch_area[1])
         }
       },
-      #only one  value per patch so corea_area[1] is ok and it prevent bugs 
+      #only one  value per patch so corea_area[1] is ok and it prevent bugs
       #linked to the numeric(1) bellow
       numeric(1)
     )
@@ -517,7 +517,7 @@ min_ellipse_from_polygon <- function(x, data2, noise) {
 
         # Create noise btw 0 and 20 m
         noise_x <- numeric(nrow(coords_m))
-        noise_y <- stats::runif(nrow(coords_m), 0, 20 / 111320) 
+        noise_y <- stats::runif(nrow(coords_m), 0, 20 / 111320)
         # Latitude : 20m = 0.00018 deg
         # for longitude:
         for (longitude in 1:nrow(coords_m)) {
