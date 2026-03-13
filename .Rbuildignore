@@ -14,3 +14,5 @@
 ^_pkgdown\.yaml$
 ^vignettes/articles$
 
+^doc$
+^Meta$

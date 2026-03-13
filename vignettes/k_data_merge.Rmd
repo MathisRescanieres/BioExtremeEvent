@@ -97,7 +97,7 @@ pixel_108 <- merged_ouputs[["108"]] #Dont forget the quote or you may get an une
 #Check if the more intense day are also the one for which the distance to escape from the extreme event are bigger. 
 library(ggplot2)
 
-ggplot(pixel_108, aes(x = as.numeric(anomaly_qt), y = as.numeric(distance)/1000)) +
+ggplot(pixel_108, aes(x = as.numeric(pixel_108$anomaly_qt), y = as.numeric(pixel_108$distance)/1000)) +
   geom_point(color = "steelblue", size = 3, alpha = 0.7) +
   labs(
     title = "Anomaly vs Distance",
