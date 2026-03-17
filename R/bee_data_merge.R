@@ -37,8 +37,28 @@
 #'  variables over the time step present in the data.
 #'
 #' @examples
-#' # TO BE ADDED
-#'
+#'  # Load data:
+#' file_spatraster <- system.file(file.path("extdata", 
+#'                                      "copernicus_data_celsius.tiff"),
+#'                                      package = "BioExtremeEvent")
+#' copernicus_data_celsius <- terra::rast(file_spatraster)
+#' file_name_1 <- system.file(file.path("extdata", "metrics_points_pixel.rds"),
+#'                                   package = "BioExtremeEvent")
+#' metrics_points_daily <- readRDS(file_name_1)
+#' file_name_2 <- system.file(file.path("extdata", "metrics_morpho_pixel.rds"),
+#'                                   package = "BioExtremeEvent")
+#' metrics_morpho_daily <- readRDS(file_name_2)
+#' file_name_3 <- system.file(file.path("extdata", "escape_pixel.rds"),
+#'                                   package = "BioExtremeEvent")
+#' escape_daily <- readRDS(file_name_3)
+#' 
+#' merged_output <- BEE.data.merge(
+#'  yourspatraster = copernicus_data_celsius,
+#'  data_metrics_point = metrics_points_daily,
+#'  data_metrics_morpho = metrics_morpho_daily,
+#'  data_escape = escape_daily, 
+#'  crs = "EPSG:3035")
+#' 
 #' @export
 #'
 #-------------------------------------------------------------------------------
