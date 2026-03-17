@@ -2,7 +2,7 @@
 #'
 #' @description
 #'  To summarise one of the daily outputs of the following fonctions from BEE
-#'  package : *bee.calc.metrics_point()* ; *bee.calc.metrics_morpho()* ; 
+#'  package : *bee.calc.metrics_point()* ; *bee.calc.metrics_morpho()* ;
 #'  *bee.calc.escape()* ; *bee.data.merge()*. Metrics values can be summarised
 #'  per extreme event or over a sliding time window.
 #'
@@ -13,7 +13,7 @@
 #'  time window).
 #'
 #' @param data :
-#'  The dataset containing the column you want to process (e.g. the ouput of 
+#'  The dataset containing the column you want to process (e.g. the ouput of
 #'  *BEE.data.merge()*, as a list of data frame).
 #' @param variable :
 #'  The name of the column for which you want to compute mean, median etc. over
@@ -26,8 +26,8 @@
 #'  - a numeric value indicating the time step for which you want to compute the
 #'  mean, median, etc.
 #'
-#' @return 
-#'  A list of dataframes, with one dataframe per pixel, with the dates in the 
+#' @return
+#'  A list of dataframes, with one dataframe per pixel, with the dates in the
 #'  rows and the values summarised.
 #'
 #' @examples
