@@ -38,6 +38,12 @@
 #' @note
 #'  All distance metrics are limited by the size of the Spatraster your
 #'  are providing. See function is not developped to work on 4D data (time + 3D).
+#' 
+#' @return
+#'  A list with one dataframe per pixel. Please make sure to call element of the
+#' list by their names 'my_list["108"]' and not by their positions e.g. :
+#' 'my_list[108]' to avoid any confusion between position in the list and pixel 
+#' number. 
 #'
 #' @examples
 #' # Load data for example: library(BioExtremeEvent)
