@@ -32,11 +32,11 @@ be able to use the output in BEE.data.merge().}
 \item{noise}{:
 The maximum distance (in metres) that you accept to use to slightly randomly
 move points if a patch is perfectly symmetrical allows you to compute the
-associated ellipse. See the "Calculate metrics on the shape of an extreme
-event" vignette for more details.}
+associated ellipse. See the 'Calculate metrics on the shape of an extreme
+event' vignette for more details.}
 }
 \value{
-Units related to area are in m².
+Units related to area are in meters squared.
 }
 \description{
 This function give the morphological metrics for an extreme event,

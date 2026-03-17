@@ -20,10 +20,10 @@
 #' @param noise :
 #'  The maximum distance (in metres) that you accept to use to slightly randomly
 #'  move points if a patch is perfectly symmetrical allows you to compute the
-#'  associated ellipse. See the "Calculate metrics on the shape of an extreme
-#'  event" vignette for more details.
+#'  associated ellipse. See the 'Calculate metrics on the shape of an extreme
+#'  event' vignette for more details.
 #'
-#' @return Units related to area are in m².
+#' @return Units related to area are in meters squared.
 #'
 #' @note
 #'  BEE.calc.metrics_morpho is not designed to work on 4D data
