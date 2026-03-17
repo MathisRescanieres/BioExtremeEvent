@@ -48,6 +48,12 @@ not), including all days belonging to this event event if they are a '0'
 day, TRUE : compute one mean distance accounting only for days that belong
 to an EE.}
 }
+\value{
+A list with one dataframe per pixel. Please make sure to call element of the
+list by their names 'my_list\link{"108"}' and not by their positions e.g. :
+'my_list\link{108}' to avoid any confusion between position in the list and pixel
+number.
+}
 \description{
 This function calculate the median distance, mean distance and standard
 deviation of distance to escape form an extreme event 'as the crow files'
