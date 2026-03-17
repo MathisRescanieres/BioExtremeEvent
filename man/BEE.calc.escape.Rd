@@ -50,9 +50,7 @@ to an EE.}
 }
 \value{
 A list with one dataframe per pixel. Please make sure to call element of the
-list by their names 'my_list\link{"108"}' and not by their positions e.g. use
-my_list\link{"108"} to call pixel 108 this avoid any confusion between position in
-the list and pixel number.
+list by their names and not by their positions.
 }
 \description{
 This function calculate the median distance, mean distance and standard
