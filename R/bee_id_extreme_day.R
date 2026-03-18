@@ -70,7 +70,7 @@
 BEE.id.extreme_day <- function(yourspatraster, baseline, direction) {
   if (class(baseline)[1] == "SpatRaster") {
     # Check spatial extent:
-    if (terra::ext(yourspatraster) != terra::ext(baseline_qt90)) {
+    if (terra::ext(yourspatraster) != terra::ext(baseline)) {
       warning(
         "youspatraster and baseline do not have the same spatial extent. To 
         avoid spatial mismatch, please provide arguments derived from the same 
