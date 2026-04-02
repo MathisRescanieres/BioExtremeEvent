@@ -127,7 +127,9 @@ BEE.calc.metrics_morpho <- function(
 
   ################################ CODE  #######################################
 
-  patch_list <- lapply(
+  future::plan(multisession, workers = 4)
+
+  patch_list <- future.apply::future_lapply(
     rasters,
     FUN = function(r) {
       terra::patches(
@@ -136,8 +138,10 @@ BEE.calc.metrics_morpho <- function(
         zeroAsNA = TRUE,
         allowGaps = TRUE
       )
-    },
+    }
   )
+
+  future::plan(sequential)
 
   non_NA_pixels <- which(
     terra::app(rasters, fun = function(x) all(!is.na(x)))[] == 1
