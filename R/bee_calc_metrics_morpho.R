@@ -128,7 +128,6 @@ BEE.calc.metrics_morpho <- function(
   ################################ CODE  #######################################
 
   future::plan(multisession, workers = 4)
-
   patch_list <- future.apply::future_lapply(
     rasters,
     FUN = function(r) {
@@ -140,7 +139,6 @@ BEE.calc.metrics_morpho <- function(
       )
     }
   )
-
   future::plan(sequential)
 
   non_NA_pixels <- which(
