@@ -121,25 +121,25 @@ BEE.calc.metrics_morpho <- function(
   if (length(nb_NA) > 1) {
     message(
       "The number of NA pixels varies through the layers, this may leads to 
-      unexpected results in the output of that funciton."
+      unexpected results in the output of that function."
     )
   }
 
   ################################ CODE  #######################################
-
-  future::plan(future::multisession, workers = 4)
-  patch_list <- future.apply::future_lapply(
-    rasters,
+  rasters_wrapped <- terra::wrap(rasters)
+  patch_list <- parallel::mclapply(
+    rasters_wrapped,
     FUN = function(r) {
+      r <- terra::unwrap(r)
       terra::patches(
         r,
         directions = 8,
         zeroAsNA = TRUE,
         allowGaps = TRUE
       )
-    }
+    },
+    mc.cores = parallel::detectCores() - 1
   )
-  future::plan(sequential)
 
   non_NA_pixels <- which(
     terra::app(rasters, fun = function(x) all(!is.na(x)))[] == 1
