@@ -127,7 +127,7 @@ BEE.calc.metrics_morpho <- function(
 
   ################################ CODE  #######################################
 
-  future::plan(multisession, workers = 4)
+  future::plan(future::multisession, workers = 4)
   patch_list <- future.apply::future_lapply(
     rasters,
     FUN = function(r) {
