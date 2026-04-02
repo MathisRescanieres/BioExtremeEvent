@@ -126,7 +126,7 @@ BEE.calc.metrics_morpho <- function(
   }
 
   ################################ CODE  #######################################
-  rasters_wrapped <- terra::wrap(rasters)
+  rasters_wrapped <- terra::wrap(terra::as.list(rasters))
   patch_list <- parallel::mclapply(
     rasters_wrapped,
     FUN = function(r) {
