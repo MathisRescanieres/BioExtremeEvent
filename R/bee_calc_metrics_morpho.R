@@ -127,21 +127,23 @@ BEE.calc.metrics_morpho <- function(
 
   ################################ CODE  #######################################
 rasters_list <- terra::as.list(rasters)
-
 rasters_wrapped <- lapply(rasters_list, terra::wrap)
-patch_list <- parallel::mclapply(
+
+patch_list_wrapped <- parallel::mclapply(
   rasters_wrapped,
   FUN = function(r) {
     r <- terra::unwrap(r)
-    terra::patches(
+    out <- terra::patches(
       r,
       directions = 8,
       zeroAsNA = TRUE,
       allowGaps = TRUE
     )
+    terra::wrap(out)  
   },
   mc.cores = parallel::detectCores() - 1
 )
+patch_list <- lapply(patch_list_wrapped, terra::unwrap)
 
   non_NA_pixels <- which(
     terra::app(rasters, fun = function(x) all(!is.na(x)))[] == 1
