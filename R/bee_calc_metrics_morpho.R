@@ -127,7 +127,7 @@ BEE.calc.metrics_morpho <- function(
 
   ################################ CODE  #######################################
 
-  patch_list <- parallel::mclapply(
+  patch_list <- lapply(
     rasters,
     FUN = function(r) {
       terra::patches(
@@ -137,7 +137,6 @@ BEE.calc.metrics_morpho <- function(
         allowGaps = TRUE
       )
     },
-    mc.cores = parallel::detectCores() - 2
   )
 
   non_NA_pixels <- which(
