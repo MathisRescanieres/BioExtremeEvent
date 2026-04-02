@@ -142,7 +142,10 @@ BEE.calc.metrics_morpho <- function(
   cell_size <- terra::values(terra::cellSize(rasters, unit = "m"))
   area_studied <- sum(cell_size[non_NA_pixels, 1]) # m
 
-  coordonates <- terra::xyFromCell(x, seq_len(terra::ncell(rasters[[1]]))) #each pixel coords
+  coordonates <- terra::xyFromCell(
+    rasters[[1]],
+    seq_len(terra::ncell(rasters[[1]]))
+  ) #each pixel coords
   dist_list <- lapply(
     patch_list,
     function(x) {
