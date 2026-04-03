@@ -65,7 +65,6 @@ BEE.calc.metrics_morpho <- function(
   # Retrive the dataframe if required
   if (!is.null(start_date) | !is.null(end_date)) {
     ## Check that date format matches
-
     format_start_date <- lubridate::guess_formats(
       start_date,
       orders = c("dmy", "ymd", "mdy")
@@ -102,7 +101,8 @@ BEE.calc.metrics_morpho <- function(
         end_date
       )
       layer_dates <- as.Date(names(extreme_event_spatraster))
-      idx <- layer_dates >= start_date & layer_dates <= end_date
+      idx <- layer_dates >= as.Date(start_date) &
+        layer_dates <= as.Date(end_date)
       rasters <- extreme_event_spatraster[[which(idx)]]
     }
   }
@@ -110,6 +110,7 @@ BEE.calc.metrics_morpho <- function(
     ## Adjust variable name to match the rest of the function
     rasters <- extreme_event_spatraster
   }
+  nb_layers <- terra::nlyr(rasters)
   nb_NA <- terra::global(rasters, fun = "isNA", na.rm = FALSE)
   if (length(nb_NA) > 1) {
     message(
@@ -117,28 +118,34 @@ BEE.calc.metrics_morpho <- function(
       unexpected results in the output of that function."
     )
   }
-
   ################################ CODE  #######################################
 
-  n_cores <- min(12, max(parallel::detectCores() - 2, 1))
-  if (terra::nlyr(rasters) >= 400) {
+  if (nb_layers >= 400) {
+    n_cores <- min(12, max(parallel::detectCores() - 2, 1))
     terra::terraOptions(threads = n_cores)
   }
-  patch_list <- lapply(
-    seq_len(terra::nlyr(rasters)),
-    function(i) {
-      terra::patches(
-        rasters[[i]],
-        directions = 8,
-        zeroAsNA = TRUE,
-        allowGaps = TRUE
-      )
-    }
-  )
 
-  non_NA_pixels <- which(
-    terra::app(rasters, fun = function(x) all(!is.na(x)))[] == 1
-  )
+  block_size <- 200
+  nb_layers
+  out_list <- vector("list", ceiling(nb_layers / block_size))
+  k <- 1
+  for (i in seq(1, nb_layers, by = block_size)) {
+    j <- min(i + block_size - 1, nb_layers)
+    block <- terra::subset(rasters, i:j)
+    out_list[[k]] <- terra::patches(
+      block,
+      directions = 8,
+      zeroAsNA = TRUE,
+      allowGaps = TRUE
+    )
+    k <- k + 1
+  }
+  patch_list <- terra::rast(out_list)
+  names(patch_list) <- rep("patches", nb_layers)
+
+  na_count <- terra::global(is.na(rasters), sum)
+  non_NA_pixels <- which(na_count == 0)
+
   cell_size <- terra::values(terra::cellSize(rasters, unit = "m"))
   area_studied <- sum(cell_size[non_NA_pixels, 1]) # m
 
@@ -146,6 +153,7 @@ BEE.calc.metrics_morpho <- function(
     rasters[[1]],
     seq_len(terra::ncell(rasters[[1]]))
   ) #each pixel coords
+
   dist_list <- lapply(
     patch_list,
     function(x) {
@@ -183,77 +191,68 @@ BEE.calc.metrics_morpho <- function(
       data$patch_area <- patch_table$patch_area[
         match(data$patch_id, patch_table$patch_id)
       ]
-      # Split the 'data' by patch id to process faster :
-      sp <- split(data, data$patch_id)
 
-      core_area <- vapply(
-        sp,
-        function(df) {
-          if (any(is.na(df$patch_id))) {
-            NA_real_
-          } else {
-            sum(as.numeric(df$cell_size) * as.numeric(df$bordering == 0))
-          }
-        },
-        numeric(1)
+      valid <- !is.na(data$patch_id) & !is.nan(data$patch_id)
+
+      core_area <- rep(NA_real_, length(unique(data$patch_id)))
+      tmp <- rowsum(
+        data$cell_size[valid] * (data$bordering[valid] == 0),
+        group = data$patch_id[valid]
       )
+      core_area_named <- setNames(tmp[, 1], rownames(tmp))
+      data$core_area <- core_area_named[as.character(data$patch_id)]
 
-      # Remapping to data
-      data$core_area <- core_area[match(data$patch_id, names(core_area))]
-
-      sp <- split(data, data$patch_id)
       # add metrics :
-      core_area_index <- vapply(
-        sp,
-        function(df) {
-          if (length(df$core_area) == 0 || is.nan(df$core_area[1])) {
-            NA_real_
-          } else {
-            as.numeric(df$core_area[1]) / as.numeric(df$patch_area[1])
-          }
-        },
-        #only one  value per patch so corea_area[1] is ok and it prevent bugs
-        #linked to the numeric(1) bellow
-        numeric(1)
-      )
-      n_pixel <- vapply(
-        sp,
-        function(df) {
-          if (all(is.nan(df$patch_id))) NA_real_ else nrow(df)
-        },
-        numeric(1)
+      patch_id <- data$patch_id[valid]
+
+      core_area_u <- tapply(data$core_area[valid], patch_id, `[`, 1)
+      patch_area_u <- tapply(data$patch_area[valid], patch_id, `[`, 1)
+      core_area_index <- core_area_u / patch_area_u
+      core_area_index[is.nan(core_area_index)] <- NA_real_
+      data$core_area_index <- core_area_index[as.character(data$patch_id)]
+
+      n_pixel <- tapply(
+        data$patch_id[valid],
+        data$patch_id[valid],
+        length
       )
 
-      # Remapping to data
-      data$core_area_index <- core_area_index[match(
-        data$patch_id,
-        names(core_area_index)
-      )]
-      data$n_pixel <- n_pixel[match(data$patch_id, names(n_pixel))]
+      n_pixel_vec <- rep(NA_real_, nrow(data))
+      n_pixel_vec[valid] <- n_pixel[as.character(data$patch_id[valid])]
+
+      data$n_pixel <- n_pixel_vec
+
       data$pixel_EE_tot <- sum(n_pixel, na.rm = TRUE)
 
       # add metrics
-      sp <- split(data, data$patch_id)
-      cover_percent <- vapply(
-        sp,
-        function(df) as.numeric(df$patch_area[1]) / as.numeric(area_studied),
-        numeric(1)
+
+      patch_area_u <- tapply(
+        data$patch_area,
+        data$patch_id,
+        `[`,
+        1
+      )
+      cover_percent <- patch_area_u / area_studied
+      data$cover_percent <- cover_percent[
+        as.character(data$patch_id)
+      ]
+
+      n_pixel_u <- tapply(
+        data$n_pixel,
+        data$patch_id,
+        `[`,
+        1
       )
 
-      n_core_pixel <- vapply(
-        sp,
-        function(df) as.numeric(df$n_pixel[1]) - sum(df$bordering),
-        numeric(1)
+      border_sum <- tapply(
+        data$bordering,
+        data$patch_id,
+        sum
       )
-
-      data$cover_percent <- cover_percent[match(
-        data$patch_id,
-        names(cover_percent)
-      )]
-      data$n_core_pixel <- n_core_pixel[match(
-        data$patch_id,
-        names(n_core_pixel)
-      )]
+      n_core_pixel <- n_pixel_u - border_sum
+      data$n_core_pixel <- n_core_pixel[
+        as.character(data$patch_id)
+      ]
 
       data$date <- rep(d, nrow(data))
 
@@ -296,53 +295,60 @@ BEE.calc.metrics_morpho <- function(
             centroid_y = y,
             patch_id = patches
           )
-        data <- merge(data, centro, by = "patch_id", all.x = TRUE)
+        idx <- match(data$patch_id, centro$patch_id)
+
+        data$centroid_x <- centro$centroid_x[idx]
+        data$centroid_y <- centro$centroid_y[idx]
         #Perimeter ratio area in pixels :
-        perim_pixel_ratio <- vapply(
-          sp, # each df contains all info about a patch, thus noudary_length and
-          # n_pixel have the same value for a given patch / for all rows of df
-          function(df) sum(df$bordering) / unique(df$n_pixel),
-          numeric(1)
-        )
-        data$perim_pixel_ratio <- perim_pixel_ratio[match(
+        border_sum <- tapply(
+          data$bordering,
           data$patch_id,
-          names(perim_pixel_ratio)
-        )]
-        #Perimeter ratio area in meters :
-        sp <- split(data, data$patch_id)
-        perim_area_ratios_m <- vapply(
-          sp,
-          function(df) sum(df$perimeter) / unique(df$patch_area),
-          numeric(1)
+          sum,
+          na.rm = TRUE
         )
+        perim_pixel_ratio <- border_sum / n_pixel_u
+        data$perim_pixel_ratio <- perim_pixel_ratio[
+          as.character(data$patch_id)
+        ]
+        #Perimeter ratio area in meters :
+        perim_sum <- tapply(data$perimeter, data$patch_id, sum, na.rm = TRUE)
+        patch_area <- tapply(data$patch_area, data$patch_id, `[`, 1)
+
+        perim_area_ratios_m <- perim_sum / patch_area
+
         data$perim_area_ratio <- perim_area_ratios_m[match(
           data$patch_id,
           names(perim_area_ratios_m)
         )]
         #Shape Index :
-        shape_index <- vapply(
-          sp,
-          function(df) 0.25 * df$perimeter[1] / sqrt(df$patch_area[1]),
-          numeric(1)
-        )
+        perim <- tapply(data$perimeter, data$patch_id, `[`, 1)
+        area <- tapply(data$patch_area, data$patch_id, `[`, 1)
+
+        shape_index <- 0.25 * perim / sqrt(area)
+
         data$shape_index <- shape_index[match(
           data$patch_id,
           names(shape_index)
         )]
         #Fractal correlation :
-        fractal_cor_indexes <- vapply(
-          sp,
-          function(df) 2 * log(0.25 * df$perimeter[1]) / log(df$patch_area[1]),
-          numeric(1)
-        )
-        data$fractal_cor_index <- fractal_cor_indexes[match(
+        fractal_cor_index <- 2 * log(0.25 * perim) / log(area)
+
+        data$fractal_cor_index <- fractal_cor_index[match(
           data$patch_id,
-          names(fractal_cor_indexes)
+          names(fractal_cor_index)
         )]
 
         #Ratio btw patch shape and ellipsoide
         ellipses <- min_ellipse_from_polygon(x, data, noise)
-        data <- merge(data, ellipses, by = "patch_id", all.x = TRUE)
+        idx <- match(data$patch_id, ellipses$patch_id)
+        data[, c(
+          "ell_dir",
+          "ell_crop_area_m2",
+          "ell_tot_area_m2",
+          "ell_long_axis",
+          "ell_short_axis",
+          "patch_ell_ratio"
+        )] <- ellipses[idx, -1]
 
         #Contiguity :
         Contiguity_indexes <- landscapemetrics::lsm_p_contig(x)
