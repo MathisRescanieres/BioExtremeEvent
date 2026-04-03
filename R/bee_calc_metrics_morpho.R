@@ -126,12 +126,11 @@ BEE.calc.metrics_morpho <- function(
   }
 
   block_size <- 200
-  nb_layers
   out_list <- vector("list", ceiling(nb_layers / block_size))
   k <- 1
   for (i in seq(1, nb_layers, by = block_size)) {
     j <- min(i + block_size - 1, nb_layers)
-    block <- terra::subset(rasters, i:j)
+    block <- rasters[[i:j]]
     out_list[[k]] <- terra::patches(
       block,
       directions = 8,
