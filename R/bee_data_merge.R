@@ -38,7 +38,7 @@
 #'
 #' @examples
 #'  # Load data:
-#' file_spatraster <- system.file(file.path("extdata", 
+#' file_spatraster <- system.file(file.path("extdata",
 #'                                      "copernicus_data_celsius.tiff"),
 #'                                      package = "BioExtremeEvent")
 #' copernicus_data_celsius <- terra::rast(file_spatraster)
@@ -51,14 +51,14 @@
 #' file_name_3 <- system.file(file.path("extdata", "escape_pixel.rds"),
 #'                                   package = "BioExtremeEvent")
 #' escape_daily <- readRDS(file_name_3)
-#' 
+#'
 #' merged_output <- BEE.data.merge(
 #'  yourspatraster = copernicus_data_celsius,
 #'  data_metrics_point = metrics_points_daily,
 #'  data_metrics_morpho = metrics_morpho_daily,
-#'  data_escape = escape_daily, 
+#'  data_escape = escape_daily,
 #'  crs = "EPSG:3035")
-#' 
+#'
 #' @export
 #'
 #-------------------------------------------------------------------------------
@@ -315,8 +315,8 @@ BEE.data.merge <- function(
     # Get informations positions
     data_metrics_morpho <- data.table::rbindlist(data_metrics_morpho)
     data_metrics_morpho_xy <- data.frame(
-      lon = data_metrics_morpho$centroid_x,
-      lat = data_metrics_morpho$centroid_y
+      lon = data_metrics_morpho$x,
+      lat = data_metrics_morpho$y
     )
     data_metrics_morpho_xy <- stats::na.omit(unique(data_metrics_morpho_xy))
     # Create polygones for each datasets :
