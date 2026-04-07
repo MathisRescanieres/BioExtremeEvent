@@ -118,8 +118,12 @@ Since *BEE.data.merge()* only works with continuous daily data, the output also 
 You can remove them as follows:
 
 ```{r, message=FALSE}
-pixel_108 <- merged_ouputs[["108"]]
-pixel_108_EE <- pixel_108[pixel_108$cleaned_value==1,]
+pixel_108 <- as.data.frame(merged_ouputs[["108"]])
+pixel_108_EE <- pixel_108[pixel_108$cleaned_value == 1,]
+#converte message to NA :
+pixel_108_EE$anomaly_qt <- as.numeric(pixel_108_EE$anomaly_qt)
+pixel_108_EE$distance <- as.numeric(pixel_108_EE$distance)
+pixel_108_EE$patch_ell_ratio <- as.numeric(pixel_108_EE$patch_ell_ratio)
 
 library(ggplot2)
 
