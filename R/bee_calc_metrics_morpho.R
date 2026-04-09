@@ -143,7 +143,8 @@ BEE.calc.metrics_morpho <- function(
   names(patch_list) <- rep("patches", nb_layers)
 
   na_count <- terra::global(is.na(rasters), sum)
-  non_NA_pixels <- which(na_count == 0)
+  v <- terra::values(rasters)
+  non_NA_pixels <- which(!apply(v, 1, function(x) any(is.na(x))))
 
   cell_size <- terra::values(terra::cellSize(rasters, unit = "m"))
   area_studied <- sum(cell_size[non_NA_pixels, 1]) # m
